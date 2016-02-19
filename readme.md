@@ -52,7 +52,9 @@ This annotation is used to declare the name of the collections relating to this 
 This annotations is used to mark the variables within the entity, At the moment this will only apply a unique index to the entity in question and a index is only one level deep, E.g you cannot apply and index to an array list type. If you apply a unique index to an type of iterable type then an exception will be thrown by Mongi.
 
 Below is a simple example, This example also used Google Gson. This is a typical pattern within the new Identity service and SCAP database.
-```java
+
+
+```Java
 @CollectionDefinition(
         collectionName = "COLLECTION_NAME"
 )
