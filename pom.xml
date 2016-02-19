@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.secdata.mongi</groupId>
+    <artifactId>mongi-core</artifactId>
+    <version>1.0-ALPHA-SNAPSHOT</version>
+
+    <!-- Securedata's Developers -->
+    <developers>
+
+        <developer>
+            <id>alexb</id>
+            <name>Alex Brown</name>
+            <email>alex.brown@secdata.com</email>
+            <organization>SecureData Europe</organization>
+            <organizationUrl>http://www.secdata.com</organizationUrl>
+            <roles>
+                <role>Developer</role>
+                <role>Builder of things</role>
+            </roles>
+        </developer>
+
+    </developers>
+
+    <issueManagement>
+        <system>Jira</system>
+        <url>http://jira.alpha.mis-cds.local/browse/AS/?selectedTab=com.atlassian.jira.jira-projects-plugin:summary-panel</url>
+    </issueManagement>
+
+    <scm>
+        <developerConnection>scm:git:http://[username]@stash.alpha.mis-cds.local/projects/AP/repos/securedata-identity-service/browse</developerConnection>
+        <url>http://stash.alpha.mis-cds.local/scm/ap/securedata-identity-service.git</url>
+    </scm>
+
+    <repositories>
+
+        <repository>
+            <id>nexus</id>
+            <name>Internal Releases</name>
+            <url>http://192.168.61.133:8081/content/repositories/releases/</url>
+        </repository>
+
+        <repository>
+            <id>snap</id>
+            <name>Internal Releases</name>
+            <url>http://192.168.61.133:8081/content/repositories/snapshots/</url>
+        </repository>
+
+    </repositories>
+
+    <distributionManagement>
+
+
+        <repository>
+            <id>nexus</id>
+            <name>Internal Releases</name>
+            <url>http://192.168.61.133:8081/content/repositories/releases/</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>nexus</id>
+            <name>Internal Snapshots</name>
+            <url>http://192.168.61.133:8081/content/repositories/snapshots</url>
+        </snapshotRepository>
+
+    </distributionManagement>
+
+
+    <dependencies>
+
+
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.secdata.identity</groupId>
+            <artifactId>affinity-identity-common</artifactId>
+            <version>0.4-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.secdata.identity</groupId>
+            <artifactId>affinity-identity-authentication</artifactId>
+            <version>0.4-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.secdata.identity</groupId>
+            <artifactId>affinity-identity-authentication-provider-ldap</artifactId>
+            <version>0.4-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.secdata.identity</groupId>
+            <artifactId>affinity-identity-authentication-provider-local</artifactId>
+            <version>0.4-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.secdata.identity</groupId>
+            <artifactId>securedata-otlu-oauth2</artifactId>
+            <version>0.4-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.secdata.identity</groupId>
+            <artifactId>affinity-identity-authorization</artifactId>
+            <version>0.4-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+
+    </dependencies>
+
+
+    <profiles>
+
+        <profile>
+            <!-- Use -DskipDocker as the docker module requires docker to be installed, there are built an their own profile -->
+            <id>docker</id>
+            <activation>
+                <property>
+                    <name>!skipDocker</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <!-- Copy the vert.x stack to target/work -->
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>2.10</version>
+                        <executions>
+                            <execution>
+                                <id>unzip-vertx-stack</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>unpack-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <includeArtifactIds>vertx-stack-manager</includeArtifactIds>
+                                    <includeClassifiers>full</includeClassifiers>
+                                    <outputDirectory>${project.build.directory}/work</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <!--
+                        Copy a filtered version of the docker file, the output directory is used as dockerDirectory in the
+                        docker maven plugin
+                        -->
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>2.7</version>
+                        <executions>
+                            <execution>
+                                <id>prepare-dockerfile</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.directory}/docker-filtered</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>src/main/docker/base</directory>
+                                            <filtering>true</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- We specify the Maven compiler plugin as we need to set it to Java 1.8 -->
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.1</version>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <!--
+        You only need the part below if you want to build your application into a fat executable jar.
+        This is a jar that contains all the dependencies required to run it, so you can just run it with
+        java -jar
+        -->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <!-- Additional configuration. -->
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <Main-Class>io.vertx.core.Launcher</Main-Class>
+                                        <Main-Verticle>${main.verticle}</Main-Verticle>
+                                    </manifestEntries>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/services/io.vertx.core.spi.VerticleFactory</resource>
+                                </transformer>
+                            </transformers>
+                            <artifactSet>
+                            </artifactSet>
+                            <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Build small JAR file with all dependencies in an external LIB folder -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+
+
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                        </configuration>
+                    </execution>
+
+
+                </executions>
+            </plugin>
+
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.4.0</version>
+                <executions>
+                    <execution>
+                        <id>run</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>io.vertx.core.Launcher</mainClass>
+                            <arguments>
+                                <argument>run</argument>
+                                <argument>${main.verticle}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>run-app</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-jar</argument>
+                                <argument>target/${project.artifactId}-${project.version}-fat.jar</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <reporting>
+
+        <plugins>
+
+            <!-- Information Reports -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.6</version>
+            </plugin>
+
+            <!-- -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>2.5</version>
+            </plugin>
+
+            <!-- -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.16</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>checkstyle</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+
+        </plugins>
+
+    </reporting>
+
+</project>
+
+
