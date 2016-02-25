@@ -1,7 +1,6 @@
 package com.secdata.mongi;
 
-import com.secdata.identity.common.entity.*;
-import com.secdata.identity.common.entity.UniqueIndex;
+
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -50,24 +49,25 @@ public class Mongi {
         // Java reflections, We loads the IDP providers via generics
         Reflections reflections = new Reflections(packageName);
         // Fetch all classes that have the ProviderTypeAnnotation.class annotation
-        Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(com.secdata.identity.common.entity.CollectionDefinition.class);
+        Set<Class<?>> annotated = reflections.getTypesAnnotatedWith( CollectionDefinition.class
+        );
         // Iterate
         for(Class ii : annotated) {
             logger.info(ii.getCanonicalName());
             // Get our Annotation and type check
-            Annotation ano = ii.getAnnotation(com.secdata.identity.common.entity.CollectionDefinition.class);
+            Annotation ano = ii.getAnnotation(CollectionDefinition.class);
             // Check annotation is instance of ProviderTypeAnnotation.class
-            if (ano instanceof com.secdata.identity.common.entity.CollectionDefinition) {
+            if (ano instanceof CollectionDefinition) {
 
                 HashMap<String,String> collectIndex = new HashMap<String, String>();
-                com.secdata.identity.common.entity.CollectionDefinition myAnnotation = (com.secdata.identity.common.entity.CollectionDefinition) ano;
+                CollectionDefinition myAnnotation = (CollectionDefinition) ano;
                 Method[] methods = ii.getDeclaredMethods();
                 Field[] fields = ii.getDeclaredFields();
 
                 logger.info("Class fields : ");
                 for(Field field : fields){
                     logger.info(field.getName());
-                    com.secdata.identity.common.entity.UniqueIndex unique = field.getAnnotation(UniqueIndex.class);
+                    UniqueIndex unique = field.getAnnotation(UniqueIndex.class);
                     if(unique != null){
                         logger.info("Index to process");
                         logger.info(field.getName());
@@ -80,7 +80,20 @@ public class Mongi {
         }
 
         // Iterate the collection annotations set
-        for (Map.Entry<String, HashMap<String,String>> entry : collectionIndex.entrySet()) {
+        createBulkIndexes( collectionIndex );
+
+        return this;
+
+    }
+
+    /**
+     *
+     *
+     */
+    private void createBulkIndexes( HashMap<String, HashMap<String,String>> indexMap){
+
+        // Iterate the collection annotations set
+        for (Map.Entry<String, HashMap<String,String>> entry : indexMap.entrySet() ) {
             String key = entry.getKey();
             HashMap<String,String> value = entry.getValue();
 
@@ -89,35 +102,62 @@ public class Mongi {
                 String indexName = index.getValue();
 
                 mongoClient.runCommand("createIndexes",
-                        new JsonObject()
-                                .put("createIndexes", key)
-                                .put("indexes", new JsonArray()
-                                                .add(
-                                                        new JsonObject()
-                                                                .put("name", indexName)
-                                                                .put("key",
-                                                                        new JsonObject().put(field, 1)
+                    new JsonObject()
+                            .put("createIndexes", key)
+                            .put("indexes", new JsonArray()
+                                            .add(
+                                                    new JsonObject()
+                                                            .put("name", indexName)
+                                                            .put("key",
+                                                                    new JsonObject().put(field, 1)
 
-                                                                ).put("unique", true)
-                                                                .put("sparse", true)
-                                                )
-                                ),
-                        cr -> {
-                            if (cr.succeeded()) {
-                                JsonObject result = cr.result();
-                                logger.info("Collection : " + key);
-                                logger.info("Field : " + field );
-                                logger.info("IndexName : " + indexName);
+                                                            ).put("unique", true)
+                                                            .put("sparse", true)
+                                            )
+                            ),
+                    cr -> {
+                        if (cr.succeeded()) {
+                            JsonObject result = cr.result();
+                            logger.info("Collection : " + key);
+                            logger.info("Field : " + field );
+                            logger.info("IndexName : " + indexName);
 
-                                logger.info("CreateIndexes succeeded result >" + result.encodePrettily());
-                            } else {
-                                logger.warn("CreateIndexes failed", cr.cause());
-                            }
-                        });
+                            logger.info("CreateIndexes succeeded result >" + result.encodePrettily());
+                        } else {
+                            logger.warn("CreateIndexes failed", cr.cause());
+                        }
+                    });
             }
         }
 
-        return this;
+    }
+
+    /**
+     *
+     *
+     */
+    private void createSigularIndex(){
+
+    }
+
+    /**
+     *
+     *
+     */
+    public void listCollectionIndexes(){
+
+        /**
+        mongoClient.runCommand("getIndexes",
+            new JsonObject(),
+            cr -> {
+                if (cr.succeeded()) {
+                    JsonObject result = cr.result();
+                    logger.info("CreateIndexes succeeded result >" + result.encodePrettily());
+                } else {
+                    logger.warn("CreateIndexes failed", cr.cause());
+                }
+            });
+         **/
 
     }
 

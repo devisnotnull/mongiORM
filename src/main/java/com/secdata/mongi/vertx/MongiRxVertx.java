@@ -2,12 +2,15 @@ package com.secdata.mongi.vertx;
 
 import com.secdata.mongi.CollectionDefinition;
 import com.secdata.mongi.UniqueIndex;
-import io.vertx.core.Vertx;
+
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.mongo.MongoClient;
+import io.vertx.rxjava.core.Vertx;
+import io.vertx.rxjava.ext.mongo.MongoClient;
 import org.apache.log4j.Logger;
 import org.reflections.Reflections;
+import rx.Observable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -19,20 +22,20 @@ import java.util.Set;
 /**
  * Created by alexb on 11/02/2016.
  */
-public class MongiVertx {
+public class MongiRxVertx {
 
-    private static Logger logger = Logger.getLogger(MongiVertx.class);
+    private static Logger logger = Logger.getLogger(MongiRxVertx.class);
 
     private MongoClient mongoClient;
 
     /**
      * @param vertx
      */
-    public MongiVertx(Vertx vertx) {
+    public MongiRxVertx(Vertx vertx) {
         mongoClient = MongoClient.createShared(vertx, new JsonObject());
     }
 
-    public MongiVertx(Vertx vertx, JsonObject config) {
+    public MongiRxVertx(Vertx vertx, JsonObject config) {
         mongoClient = MongoClient.createShared(vertx, config);
     }
 
@@ -42,7 +45,7 @@ public class MongiVertx {
      * @param packageName
      * @return
      */
-    public MongiVertx buildOrmSolution(String packageName) {
+    public MongiRxVertx buildOrmSolution(String packageName) {
 
         HashMap<String, HashMap<String, String>> collectionIndex = new HashMap<String, HashMap<String, String>>();
         // TODO create IDP providers and store on verticle creation
@@ -102,8 +105,9 @@ public class MongiVertx {
                 String field = index.getKey();
                 String indexName = index.getValue();
 
-                mongoClient.runCommand("createIndexes",
-                    new JsonObject()
+                // Construct json object
+                JsonObject indexJson =
+                        new JsonObject()
                             .put("createIndexes", key)
                             .put("indexes", new JsonArray()
                                             .add(
@@ -115,19 +119,20 @@ public class MongiVertx {
                                                             ).put("unique", true)
                                                             .put("sparse", true)
                                             )
-                            ),
-                    cr -> {
-                        if (cr.succeeded()) {
-                            JsonObject result = cr.result();
-                            logger.info("Collection : " + key);
-                            logger.info("Field : " + field);
-                            logger.info("IndexName : " + indexName);
+                            );
 
-                            logger.info("CreateIndexes succeeded result >" + result.encodePrettily());
-                        } else {
-                            logger.warn("CreateIndexes failed", cr.cause());
+                /**
+                mongoClient.runCommandObservable("createIndexes", indexJson)
+                        .subscribe(results -> {
+                            logger.info("CREATING INDEX");
+                            System.out.println("Results " + results.encodePrettily());
                         }
-                    });
+                    );
+                **/
+
+                Observable<JsonObject> json = mongoClient.runCommandObservable("createIndexes", indexJson);
+
+
             }
         }
 
