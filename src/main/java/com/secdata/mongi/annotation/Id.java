@@ -1,4 +1,4 @@
-package com.secdata.mongi;
+package com.secdata.mongi.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,9 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE) //can use in method only.
-public @interface CollectionDefinition {
+@Target(ElementType.FIELD) //can use in method only.
+public @interface Id {
 
-    String collectionName();
+    //should ignore this test?
+    String indexName();
 
 }

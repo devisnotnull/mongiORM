@@ -1,42 +1,74 @@
-package com.secdata.mongi;
+package com.secdata.mongi.offical;
 
-import com.secdata.mongi.annotation.CollectionDefinition;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexModel;
+import com.mongodb.client.model.IndexOptions;
+import com.secdata.mongi.CollectionDefinition;
 import com.secdata.mongi.annotation.UniqueIndex;
-import com.secdata.mongi.annotation.Id;
 
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.mongo.MongoClient;
+import io.vertx.core.json.Json;
 import org.apache.log4j.Logger;
+import org.bson.Document;
 import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by alexb on 11/02/2016.
  */
-public class Mongi {
+public class MongiOffical {
 
-    private static Logger logger = Logger.getLogger(Mongi.class);
+    private static Logger logger = Logger.getLogger(MongiOffical.class);
 
     private MongoClient mongoClient;
+    private Integer port;
+    private String host;
+    private String database;
 
     /**
      *
-     * @param vertx
+     * @param db
+     * @param host
+     * @param pt
      */
-    public Mongi(Vertx vertx){
-        mongoClient = MongoClient.createShared(vertx, new JsonObject());
+    public MongiOffical(String db , String host , Integer pt){
+
+        this.host = host;
+        database = db;
+        port = pt;
+        mongoClient = new MongoClient( host , pt );
+
     }
 
-    public Mongi(Vertx vertx, JsonObject config){
-        mongoClient = MongoClient.createShared(vertx, config);
+    /**
+     *
+     * @param db
+     * @param cluster
+     */
+    public MongiOffical(String db , List<ServerAddress> cluster){
+
+        this.host = host;
+        database = db;
+        mongoClient = new MongoClient( cluster );
+
+    }
+
+    /**
+     *
+     * @return
+     */
+    public MongoClient getMongoClient(){
+        return mongoClient;
     }
 
     /**
@@ -44,7 +76,7 @@ public class Mongi {
      * @param packageName
      * @return
      */
-    public Mongi buildOrmSolution(String packageName){
+    public MongiOffical buildOrmSolution(String packageName){
 
         HashMap<String, HashMap<String,String>> collectionIndex = new HashMap<String, HashMap<String, String>>();
         // TODO create IDP providers and store on verticle creation
@@ -95,42 +127,44 @@ public class Mongi {
      */
     private void createBulkIndexes( HashMap<String, HashMap<String,String>> indexMap){
 
+        Gson gson = new GsonBuilder().serializeNulls().create();
+
+        MongoDatabase mongoDatabase = mongoClient.getDatabase(database);
+
+        List<IndexModel> indexModels = new ArrayList<>();
+
         // Iterate the collection annotations set
         for (Map.Entry<String, HashMap<String,String>> entry : indexMap.entrySet() ) {
-            String key = entry.getKey();
+
+            String collection  = entry.getKey();
             HashMap<String,String> value = entry.getValue();
 
+            try {
+                mongoDatabase.createCollection(collection);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
             for(Map.Entry<String,String> index : value.entrySet()){
+
                 String field = index.getKey();
                 String indexName = index.getValue();
 
-                mongoClient.runCommand("createIndexes",
-                    new JsonObject()
-                            .put("createIndexes", key)
-                            .put("indexes", new JsonArray()
-                                            .add(
-                                                    new JsonObject()
-                                                            .put("name", indexName)
-                                                            .put("key",
-                                                                    new JsonObject().put(field, 1)
-
-                                                            ).put("unique", true)
-                                                            .put("sparse", true)
-                                            )
-                            ),
-                    cr -> {
-                        if (cr.succeeded()) {
-                            JsonObject result = cr.result();
-                            logger.info("Collection : " + key);
-                            logger.info("Field : " + field );
-                            logger.info("IndexName : " + indexName);
-
-                            logger.info("CreateIndexes succeeded result >" + result.encodePrettily());
-                        } else {
-                            logger.warn("CreateIndexes failed", cr.cause());
-                        }
-                    });
+                Document indexDocument = new Document().append(field, 1);
+                IndexOptions indexOptions = new IndexOptions().unique(true).name(indexName).expireAfter(60L, TimeUnit.SECONDS);
+                String dd = "";
+                try {
+                    dd = mongoDatabase.getCollection(collection).createIndex(indexDocument, indexOptions);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                System.out.println(Json.encode(indexDocument));
+                System.out.println(dd);
             }
+
+            System.out.println("INDEX LIST");
+            System.out.println(Json.encode(mongoDatabase.getCollection(collection).listIndexes()));
+
         }
 
     }

@@ -1,7 +1,9 @@
 package com.secdata.mongi.vertx;
 
-import com.secdata.mongi.CollectionDefinition;
-import com.secdata.mongi.UniqueIndex;
+import com.secdata.mongi.annotation.CollectionDefinition;
+import com.secdata.mongi.annotation.UniqueIndex;
+import com.secdata.mongi.annotation.Id;
+
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -23,6 +25,7 @@ public class MongiVertx {
 
     private static Logger logger = Logger.getLogger(MongiVertx.class);
 
+    private String database;
     private MongoClient mongoClient;
 
     /**
@@ -34,6 +37,14 @@ public class MongiVertx {
 
     public MongiVertx(Vertx vertx, JsonObject config) {
         mongoClient = MongoClient.createShared(vertx, config);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public MongoClient getMongoClient(){
+        return mongoClient;
     }
 
     /**
@@ -60,6 +71,8 @@ public class MongiVertx {
             if (ano instanceof CollectionDefinition) {
 
                 HashMap<String, String> collectIndex = new HashMap<String, String>();
+                HashMap<String, String> collectIndexTtl = new HashMap<String, String>();
+
                 CollectionDefinition myAnnotation = (CollectionDefinition) ano;
                 Method[] methods = ii.getDeclaredMethods();
                 Field[] fields = ii.getDeclaredFields();
@@ -68,6 +81,7 @@ public class MongiVertx {
                 for (Field field : fields) {
                     logger.info(field.getName());
                     UniqueIndex unique = field.getAnnotation(UniqueIndex.class);
+
                     if (unique != null) {
                         logger.info("Index to process");
                         logger.info(field.getName());
@@ -114,6 +128,7 @@ public class MongiVertx {
 
                                                             ).put("unique", true)
                                                             .put("sparse", true)
+                                                    .put("expireAfterSeconds",60)
                                             )
                             ),
                     cr -> {

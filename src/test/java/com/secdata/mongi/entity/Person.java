@@ -3,11 +3,10 @@ package com.secdata.mongi.entity;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.Since;
 import com.secdata.mongi.CollectionDefinition;
-import com.secdata.mongi.UniqueIndex;
+import com.secdata.mongi.annotation.TTLIndex;
+import com.secdata.mongi.annotation.UniqueIndex;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Java pojo class for clients
@@ -24,6 +23,7 @@ public class Person {
 
     @Since(1.0)
     @Expose
+    @TTLIndex(expirationTime = 60)
     @UniqueIndex(indexName = "name_unique_index")
     private String name;
 

@@ -1,9 +1,10 @@
 package com.secdata.mongi;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.secdata.mongi.adapter.MongoJsonToBson;
 import com.secdata.mongi.entity.Person;
 import com.secdata.mongi.vertx.MongiRxVertx;
-import com.secdata.mongi.vertx.MongiVertx;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -11,16 +12,14 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.ext.mongo.MongoClient;
 import org.apache.log4j.Logger;
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import io.vertx.rxjava.core.AbstractVerticle;
 import rx.Observable;
-
 import java.util.Date;
 import java.util.UUID;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -31,6 +30,12 @@ import static org.junit.Assert.assertTrue;
 public class MongiRxVertxTest {
 
     private Logger logger = Logger.getLogger(MongiRxVertxTest.class);
+
+    private Gson gson = new GsonBuilder()
+            //.serializeNulls()
+            .registerTypeAdapter(ObjectId.class, MongoJsonToBson.oidToBson)
+            .registerTypeAdapter(Date.class, MongoJsonToBson.dateToBson)
+            .create();
 
     private JsonObject mongoConfig = new JsonObject();
     private MongoClient mongoClient;
@@ -44,26 +49,17 @@ public class MongiRxVertxTest {
 
         vertx = Vertx.vertx();
 
-        mongoConfig = new JsonObject()
-                .put("connection_string", "mongodb://localhost:27017")
-                .put("db_name", "mongoTest");
+        mongoConfig = new JsonObject().put("db_name", "test_rx_vertx");
 
         mongoClient = MongoClient.createShared(vertx, mongoConfig);
 
-        mongoClient.createCollectionObservable("test_collection").subscribe(results1 -> {
-            System.out.println("CREATING Observable ");
-
-        });
-
     }
-
-
 
     @Test
     public void testVertxInit(TestContext context){
 
         System.out.println("===============================================================");
-        System.out.println("VERTX INIT");
+        System.out.println("VERTX RX ADDING NEW PERSON");
 
         final Async async = context.async();
 
@@ -73,11 +69,26 @@ public class MongiRxVertxTest {
         person.setHeight("5,4");
         person.setName("Shizzle King");
 
-        JsonObject product1 = new JsonObject(Json.encode(person));
+        JsonObject product1 = new JsonObject( gson.toJson(person) );
 
-        mongoClient.saveObservable("person", product1);
+        System.out.println("ADDING NEW PERON ++++++++++++++++++++++++++++");
+        System.out.println(product1.encodePrettily());
 
-        assertTrue(true);
+        mongoClient
+            .saveObservable("test_collection", product1)
+            .subscribe(
+                id -> {
+                    System.out.println("Inserted document " + id);
+                }, error -> {
+                    System.out.println("Err");
+                    error.printStackTrace();
+                }, () -> {
+                    // Everything has been inserted now we can query mongo
+                    System.out.println("Insertions done");
+                    System.out.println("ADDING RECORD");
+        });
+
+        System.out.println("/////////////////////////////////////////////////////////////////////////////////////////////////////////");
 
         async.complete();
 
@@ -91,9 +102,15 @@ public class MongiRxVertxTest {
 
         final Async async = context.async();
 
-        MongiRxVertx mongiRxVertx = new MongiRxVertx( vertx );
+        try {
+            JsonObject config = new JsonObject().put("db_name", "test_rx_vertx");
+            MongiRxVertx mongiRxVertx = new MongiRxVertx(vertx, config);
 
-        mongiRxVertx.buildOrmSolution("com.secdata.mongi.entity");
+            mongiRxVertx.buildOrmSolution("com.secdata.mongi.entity");
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
         assertTrue(true);
 
@@ -107,11 +124,13 @@ public class MongiRxVertxTest {
         assertEquals("onetwo", result);
     }
 
-    @After
+
     public void cleanUp(){
 
-        mongoClient.dropCollectionObservable("test_collection").subscribe(results -> {
-            System.out.println("Dropping Observable ");
+        JsonObject config = new JsonObject().put("db_name", "test_rx_vertx");
+        MongiRxVertx mongiRxVertx = new MongiRxVertx( vertx , config );
+
+        mongiRxVertx.getMongoClient().dropCollection("test_collection" , (handle) -> {
 
         });
 

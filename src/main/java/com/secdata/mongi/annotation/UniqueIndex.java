@@ -1,4 +1,4 @@
-package com.secdata.mongi;
+package com.secdata.mongi.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

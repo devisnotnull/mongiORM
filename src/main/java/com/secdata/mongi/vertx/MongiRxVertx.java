@@ -1,9 +1,8 @@
 package com.secdata.mongi.vertx;
 
 import com.secdata.mongi.CollectionDefinition;
-import com.secdata.mongi.UniqueIndex;
+import com.secdata.mongi.annotation.UniqueIndex;
 
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava.core.Vertx;
@@ -15,9 +14,7 @@ import rx.Observable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by alexb on 11/02/2016.
@@ -28,15 +25,30 @@ public class MongiRxVertx {
 
     private MongoClient mongoClient;
 
+
     /**
+     *
      * @param vertx
      */
     public MongiRxVertx(Vertx vertx) {
         mongoClient = MongoClient.createShared(vertx, new JsonObject());
     }
 
-    public MongiRxVertx(Vertx vertx, JsonObject config) {
+    /**
+     *
+     * @param vertx
+     * @param config
+     */
+    public MongiRxVertx(Vertx vertx , JsonObject config) {
         mongoClient = MongoClient.createShared(vertx, config);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public MongoClient getMongoClient(){
+        return mongoClient;
     }
 
     /**
@@ -96,9 +108,11 @@ public class MongiRxVertx {
      */
     private void createBulkIndexes(HashMap<String, HashMap<String, String>> indexMap) {
 
+        List<Observable<JsonObject>> indexListObs  = new ArrayList<>();
+
         // Iterate the collection annotations set
         for (Map.Entry<String, HashMap<String, String>> entry : indexMap.entrySet()) {
-            String key = entry.getKey();
+            String collection  = entry.getKey();
             HashMap<String, String> value = entry.getValue();
 
             for (Map.Entry<String, String> index : value.entrySet()) {
@@ -108,7 +122,7 @@ public class MongiRxVertx {
                 // Construct json object
                 JsonObject indexJson =
                         new JsonObject()
-                            .put("createIndexes", key)
+                            .put("createIndexes", collection)
                             .put("indexes", new JsonArray()
                                             .add(
                                                     new JsonObject()
@@ -118,33 +132,25 @@ public class MongiRxVertx {
 
                                                             ).put("unique", true)
                                                             .put("sparse", true)
+                                                            .put("expireAfterSeconds", 60)
+
                                             )
                             );
 
-                /**
-                mongoClient.runCommandObservable("createIndexes", indexJson)
-                        .subscribe(results -> {
-                            logger.info("CREATING INDEX");
-                            System.out.println("Results " + results.encodePrettily());
-                        }
-                    );
-                **/
-
                 Observable<JsonObject> json = mongoClient.runCommandObservable("createIndexes", indexJson);
-
+                indexListObs.add(json);
 
             }
         }
 
-    }
+        Observable.from(indexListObs).subscribe(urls -> {
 
-    /**
-     *
-     *
-     */
-    private void createSigularIndex() {
+
+        });
+
 
     }
+
 
     /**
      *
