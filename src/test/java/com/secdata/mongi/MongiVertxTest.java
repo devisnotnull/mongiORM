@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
 import com.secdata.mongi.adapter.MongoJsonToBson;
+import com.secdata.mongi.entity.Cars;
+import com.secdata.mongi.entity.Database;
 import com.secdata.mongi.entity.Person;
 import com.secdata.mongi.vertx.MongiVertx;
 import io.vertx.core.Vertx;
@@ -47,6 +49,10 @@ public class MongiVertxTest {
     @Before
     public void setup() throws Exception {
 
+        System.out.println("--------------------------------------------------------");
+        System.out.println("Vertx offical driver test");
+        System.out.println("--------------------------------------------------------");
+
         vertx = Vertx.vertx();
 
         mongoConfig = new JsonObject().put("db_name", "test_vertx");
@@ -64,40 +70,11 @@ public class MongiVertxTest {
     }
 
     @Test
-    public void testConcatenate() {
-        String result = "onetwo";
-        assertEquals("onetwo", result);
-    }
-
-    @Test
-    public void testVertxInit(TestContext context){
-
-        final Async async = context.async();
-
-        Person person = new Person();
-        person.set_id( UUID.randomUUID().toString() );
-        person.setDob(new Date());
-        person.setHeight("5,4");
-        person.setName("Shizzle King");
-
-        logger.info("++++++++++++++++++++++++=============================================");
-        logger.info(gson.toJson(person));
-        JsonObject product1 = new JsonObject(Json.encode(person));
-
-        mongoClient.save("test_collection", product1, id -> {
-            logger.info("Adding to mongo collection");
-            context.assertTrue(id.succeeded() , "If true operation to add document was sucessfull");
-            context.assertNotNull(id.result(), "If this operation was a sucess then this would be a mongo objectID");
-            logger.info(id.result());
-            assertTrue(true);
-            async.complete();
-        });
-
-
-    }
-
-    @Test
     public void testMongoIndexCreation(TestContext context){
+
+        System.out.println("--------------------------------------------------------");
+        System.out.println("Creating indexes");
+        System.out.println("--------------------------------------------------------");
 
         final Async async = context.async();
 
@@ -107,6 +84,110 @@ public class MongiVertxTest {
 
         mongiVertx.buildOrmSolution("com.secdata.mongi.entity");
 
+        Database database = mongiVertx.mongiDb;
+
+        System.out.println("--------------------------------------------------------");
+        System.out.println("Our database");
+        System.out.println("--------------------------------------------------------");
+
+        System.out.println( Json.encodePrettily( database ) );
+
+        System.out.println("--------------------------------------------------------");
+        System.out.println("Does person exist");
+        System.out.println("--------------------------------------------------------");
+        System.out.println(database.getDatabaseEntities().contains(Mongi.class));
+
+
+        Cars cars = new Cars();
+        cars.setColor("BLUE");
+        cars.setNumberplate("qfefwrgvregerg");
+
+        Person person = new Person();
+        person.setName("Alex Lee Brown");
+        person.setHeight("33.4");
+
+
+        mongiVertx.save(Cars.class, cars , e-> {
+
+            if(e.succeeded()){
+
+                System.out.println("=========================");
+                System.out.println("WE HAVE OUR CAR");
+                System.out.println(e.result());
+
+                mongiVertx.save(Person.class, person, personCallback -> {
+
+                    if (personCallback.succeeded()) {
+
+                        System.out.println("=========================");
+                        System.out.println("WE HAVE OUR PERSON");
+                        System.out.println(personCallback.result());
+
+                        mongiVertx.linkDocument( Person.class , personCallback.result() , Cars.class , e.result() , link -> {
+
+                           if(link.succeeded()){
+                               System.out.println("=========================");
+                               System.out.println("WE ARE LINKED");
+                           }
+                            if(link.failed()){
+                                System.out.println("=========================");
+                                System.out.println("ERROR WERE NOT LINKED");
+                            }
+
+                        });
+
+                        /**
+                        mongiVertx.findOne(Person.class, personCallback.result(), e1 -> {
+
+                            if (e1.succeeded()) {
+
+                                System.out.println(e1.result().encodePrettily());
+                                Person person1 = gson.fromJson(e1.result().toString() , Person.class);
+                                person1.setHeight("wfwrg");
+
+
+                                mongiVertx.update(Person.class, personCallback.result() , person1 , update -> {
+
+                                    if(update.succeeded()) System.out.println("WE UPDATED");
+                                    if(update.failed()) System.out.println("WE FAILED");
+
+                                });
+
+                            }
+                            if (e1.failed()) {
+
+                            }
+                        });
+                         **/
+
+                    }
+                    if (personCallback.failed()) {
+                        System.out.println("====================================");
+                        System.out.println("Data does not match");
+                        assertFalse(true);
+                    }
+
+                });
+
+
+
+                mongiVertx.findOne(Cars.class, e.result() , e1->{
+                    if(e1.succeeded()){
+                        System.out.println(e1.result().encodePrettily());
+                    }
+                    if (e1.failed()){
+
+                    }
+                });
+
+            }
+            if (e.failed()){
+                System.out.println("Data does not match");
+                assertFalse(true);
+            }
+
+        });
+
         assertTrue(true);
 
         mongiVertx.listCollectionIndexes();
@@ -115,21 +196,58 @@ public class MongiVertxTest {
 
     }
 
+    @Test
+    public void testVertxInit(TestContext context){
+
+        System.out.println("--------------------------------------------------------");
+        System.out.println("Creating document");
+        System.out.println("--------------------------------------------------------");
+
+        final Async async = context.async();
+
+        Person person = new Person();
+        //person.set_id( UUID.randomUUID().toString() );
+        person.setDob(new Date());
+        person.setHeight("5,4");
+        person.setName("Shizzle King");
+
+        System.out.println(gson.toJson(person));
+        JsonObject product1 = new JsonObject(Json.encode(person));
+
+        mongoClient.save("test_collection", product1, id -> {
+
+            if(id.succeeded()){
+
+                System.out.println(id.result());
+                context.assertNotNull(id.result(), "If this operation was a sucess then this would be a mongo objectID");
 
 
+
+                assertTrue(true);
+            }
+            if (id.failed()){
+                context.fail("Unable to create document");
+            }
+
+            async.complete();
+
+        });
+
+
+    }
+
+    //@After
     public void cleanUp(){
+
+        System.out.println("--------------------------------------------------------");
+        System.out.println("Running cleanup");
+        System.out.println("--------------------------------------------------------");
 
         JsonObject config = new JsonObject().put("db_name", "test_vertx");
         MongiVertx mongiVertx = new MongiVertx(vertx , config);
         mongiVertx.getMongoClient().dropCollection("test_collection", (handle) -> {
 
         });
-
-        /**
-        mongiVertx.getMongoClient().runCommand("dropDatabase" , new JsonObject().put("test_vertx",true) , (handler) -> {
-
-        });
-         **/
 
         assertTrue(true);
 

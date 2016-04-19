@@ -122,7 +122,7 @@ public class Mongi {
                         if (cr.succeeded()) {
                             JsonObject result = cr.result();
                             logger.info("Collection : " + key);
-                            logger.info("Field : " + field );
+                            logger.info("DocumentField : " + field );
                             logger.info("IndexName : " + indexName);
 
                             logger.info("CreateIndexes succeeded result >" + result.encodePrettily());

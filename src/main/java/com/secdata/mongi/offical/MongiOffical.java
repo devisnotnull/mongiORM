@@ -9,7 +9,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
-import com.secdata.mongi.CollectionDefinition;
+import com.secdata.mongi.annotation.CollectionDefinition;
 import com.secdata.mongi.annotation.UniqueIndex;
 
 import io.vertx.core.json.Json;

@@ -7,7 +7,7 @@ import com.mongodb.async.client.*;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.connection.ClusterSettings;
-import com.secdata.mongi.CollectionDefinition;
+import com.secdata.mongi.annotation.CollectionDefinition;
 import com.secdata.mongi.annotation.UniqueIndex;
 import io.vertx.core.json.Json;
 import org.apache.log4j.Logger;

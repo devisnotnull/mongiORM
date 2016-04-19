@@ -32,15 +32,15 @@ public class MongiOfficalTest {
             .registerTypeAdapter(Date.class, MongoJsonToBson.dateToBson)
             .create();
 
-    @Before
+    //@Before
     public void setup() throws Exception {
 
-        System.out.println("===============================================================");
+        logger.info("===============================================================");
         System.out.println("SETUPPPP");
 
     }
 
-    @Test
+    //@Test
     public void testVertxInit(){
 
         System.out.println("===============================================================");
@@ -49,7 +49,7 @@ public class MongiOfficalTest {
         MongiOffical mongiOffical = new MongiOffical("test_mongi_offical", "localhost" , 27017);
 
         Person person = new Person();
-        person.set_id( UUID.randomUUID().toString() );
+        //person.set_id( UUID.randomUUID().toString() );
         //person.setDob(new Date());
         person.setHeight("5,4");
         person.setName( UUID.randomUUID().toString() );
@@ -66,7 +66,7 @@ public class MongiOfficalTest {
         assertTrue(true);
     }
 
-    @Test
+    //@Test
     public void testMongoIndexCreation(){
 
         System.out.println("===============================================================");

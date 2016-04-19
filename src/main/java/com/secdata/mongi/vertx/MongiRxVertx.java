@@ -1,6 +1,6 @@
 package com.secdata.mongi.vertx;
 
-import com.secdata.mongi.CollectionDefinition;
+import com.secdata.mongi.annotation.CollectionDefinition;
 import com.secdata.mongi.annotation.UniqueIndex;
 
 import io.vertx.core.json.JsonArray;

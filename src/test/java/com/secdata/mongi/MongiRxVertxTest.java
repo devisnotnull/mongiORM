@@ -26,7 +26,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by alexb on 06/07/15.
  */
-@RunWith(VertxUnitRunner.class)
+//@RunWith(VertxUnitRunner.class)
 public class MongiRxVertxTest {
 
     private Logger logger = Logger.getLogger(MongiRxVertxTest.class);
@@ -55,7 +55,7 @@ public class MongiRxVertxTest {
 
     }
 
-    @Test
+    //@Test
     public void testVertxInit(TestContext context){
 
         System.out.println("===============================================================");
@@ -64,7 +64,7 @@ public class MongiRxVertxTest {
         final Async async = context.async();
 
         Person person = new Person();
-        person.set_id( UUID.randomUUID().toString() );
+        //person.set_id( UUID.randomUUID().toString() );
         person.setDob(new Date());
         person.setHeight("5,4");
         person.setName("Shizzle King");
@@ -94,7 +94,7 @@ public class MongiRxVertxTest {
 
     }
 
-    @Test
+    // @Test
     public void testMongoIndexCreation(TestContext context){
 
         System.out.println("===============================================================");
