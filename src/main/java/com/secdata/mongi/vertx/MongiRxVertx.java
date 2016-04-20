@@ -25,7 +25,6 @@ public class MongiRxVertx {
 
     private MongoClient mongoClient;
 
-
     /**
      *
      * @param vertx

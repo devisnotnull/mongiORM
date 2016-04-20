@@ -136,6 +136,19 @@ public class MongiVertxTest {
 
                         });
 
+                        mongiVertx.linkDocument( Person.class , personCallback.result() , Cars.class , e.result() , link -> {
+
+                            if(link.succeeded()){
+                                System.out.println("=========================");
+                                System.out.println("WE ARE LINKED");
+                            }
+                            if(link.failed()){
+                                System.out.println("=========================");
+                                System.out.println("ERROR WERE NOT LINKED");
+                            }
+
+                        });
+
                         /**
                         mongiVertx.findOne(Person.class, personCallback.result(), e1 -> {
 

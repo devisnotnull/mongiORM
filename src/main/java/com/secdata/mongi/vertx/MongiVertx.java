@@ -2,6 +2,7 @@ package com.secdata.mongi.vertx;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.secdata.mongi.IMongi;
 import com.secdata.mongi.annotation.*;
 
 import com.secdata.mongi.entity.Collection;
@@ -25,28 +26,41 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
+ *
  * Created by alexb on 11/02/2016.
+ *
  */
-public class MongiVertx {
+public class MongiVertx implements IMongi {
 
     private static Logger logger = Logger.getLogger(MongiVertx.class);
+
     private Gson jsonParser = new GsonBuilder()
             .setPrettyPrinting()
             .excludeFieldsWithoutExposeAnnotation()
             .serializeNulls()
             .create();
+
     private String database;
+
     private MongoClient mongoClient;
 
-    public Database mongiDb = new Database();
+    private Database mongiDb = new Database();
 
     /**
+     *
      * @param vertx
+     *
      */
     public MongiVertx(Vertx vertx) {
         mongoClient = MongoClient.createShared(vertx, new JsonObject());
     }
 
+    /**
+     *
+     * @param vertx
+     * @param config
+     *
+     */
     public MongiVertx(Vertx vertx, JsonObject config) {
         mongoClient = MongoClient.createShared(vertx, config);
     }
@@ -60,6 +74,16 @@ public class MongiVertx {
     }
 
     /**
+     *
+     * @return
+     */
+    public Database getMongoDatabase(){
+        return mongiDb;
+    }
+
+    /**
+     *
+     *
      * This function takes a package name to scan and profiles the schema to insert and the indexs to ensure.
      *
      * @param packageName
@@ -224,7 +248,7 @@ public class MongiVertx {
 
     /**
      *
-     *
+     * @param indexMap
      */
     private void createBulkUniqueIndexes(HashMap<String, HashMap<String, String>> indexMap) {
 
@@ -269,194 +293,6 @@ public class MongiVertx {
 
     }
 
-    /**
-     *
-     * @param save
-     * @param item
-     * @param resultHandler
-     */
-    public void save(Class save, Object item, Handler<AsyncResult<String>> resultHandler){
-
-         Collection collection = mongiDb.getDatabaseCollections().stream().filter(x -> x.getCollectionClazz().equals(save)).findFirst().get();
-
-         if( item.getClass().equals(save) ){
-
-        } else {
-             resultHandler.handle(Future.failedFuture("Doesnt match"));
-        }
-
-        for (Field field : item.getClass().getFields()) {
-
-            LinkedCollection linkedCollection = field.getAnnotation(LinkedCollection.class);
-            if( linkedCollection !=null ){
-                linkedCollection.linkedCollection();
-            }
-
-        }
-
-        mongoClient.save(collection.getCollectionName(), new JsonObject(Json.encode(item)), e -> {
-            if (e.succeeded()) resultHandler.handle(Future.succeededFuture(e.result()));
-            else if (e.failed()) resultHandler.handle(Future.failedFuture(e.cause()));
-            else logger.info("No Callback");
-        });
-
-    }
-
-    /**
-     *
-     * @param save
-     * @param item
-     * @param resultHandler
-     */
-    public void update(Class save, String id, Object item, Handler<AsyncResult<String>> resultHandler){
-
-        Collection collection = mongiDb.getDatabaseCollections().stream().filter(x -> x.getCollectionClazz().equals(save)).findFirst().get();
-
-        if( item.getClass().equals(save) ){
-        } else {
-            resultHandler.handle(Future.failedFuture("Doesnt match"));
-        }
-
-        for (Field field : item.getClass().getFields()) {
-
-            LinkedCollection linkedCollection = field.getAnnotation(LinkedCollection.class);
-            if( linkedCollection !=null ){
-                linkedCollection.linkedCollection();
-            }
-
-        }
-
-        JsonObject query = new JsonObject().put("_id", id);
-        JsonObject update = new JsonObject().put("$set", new JsonObject(jsonParser.toJson(item)));
-
-        System.out.println(query.encodePrettily());
-        System.out.println(update.encodePrettily());
-
-        mongoClient.update(collection.getCollectionName(), query, update , e -> {
-            if (e.succeeded()) resultHandler.handle(Future.succeededFuture());
-            else if (e.failed()) resultHandler.handle(Future.failedFuture(e.cause()));
-            else logger.info("No Callback");
-        });
-
-
-    }
-
-    /**
-     *
-     * @param base
-     * @param item
-     * @param sub
-     * @param subId
-     * @param resultHandler
-     */
-    public void linkDocument(Class base, String item, Class sub , String subId ,Handler<AsyncResult<String>> resultHandler){
-
-        Collection collectionBase = mongiDb.getDatabaseCollections().stream().filter(x -> x.getCollectionClazz().equals(base)).findFirst().get();
-
-        if( !item.getClass().equals(base) )  resultHandler.handle(Future.failedFuture("Base document doesnt match"));;
-
-        Collection collectionSub = mongiDb.getDatabaseCollections().stream().filter(x -> x.getCollectionClazz().equals(sub)).findFirst().get();
-
-        if( !item.getClass().equals(base) )  resultHandler.handle(Future.failedFuture("Sub document doesnt match"));
-
-        boolean doesExist = false;
-
-        System.out.println(base.getCanonicalName());
-        System.out.println(Json.encode( base.getFields() ));
-
-        for (Field field : base.getFields()) {
-
-            System.out.println("===================================");
-            System.out.println("HERE ARE OUR FIELDS");
-            System.out.println(field.getName());
-            LinkedCollection linkedCollection = field.getAnnotation(LinkedCollection.class);
-            if( linkedCollection !=null ){
-                if(linkedCollection.linkedCollection().equals(sub)) doesExist = true;
-            }
-
-        }
-
-        if(!doesExist){
-            System.out.println("===================================");
-            System.out.println("CLAZZ NOT FOUND");
-            System.out.println("Base clazz : " + base.getCanonicalName());
-            System.out.println("SUB clazz : " + sub.getCanonicalName());
-            resultHandler.handle(Future.failedFuture("Sub document doesnt match clazz"));
-            return;
-        }
-
-        JsonObject query = new JsonObject().put("_id", item);
-
-        findOne( collectionBase.getCollectionClazz() , item , baseHandler -> {
-
-            if(baseHandler.succeeded()){
-
-                System.out.println("===================================");
-                System.out.println("BASE CLAZZ LOCATED");
-                System.out.println(baseHandler.result().encodePrettily());
-
-                JsonObject baseEntity = baseHandler.result();
-                String id = baseEntity.getString("_id");
-
-                findOne( sub , subId , subHandler -> {
-
-                    if(subHandler.succeeded()){
-
-                        System.out.println("===================================");
-                        System.out.println("SUB CLAZZ LOCATED");
-                        System.out.println(subHandler.result().encodePrettily());
-
-                    }
-                    if (subHandler.failed()){
-                        resultHandler.handle(Future.failedFuture("Sub document not found"));
-                    }
-
-                });
-
-            }
-
-            if(baseHandler.failed()){
-                resultHandler.handle(Future.failedFuture("Base document not found"));
-            }
-
-        });
-
-        /**
-        mongoClient.update(collectionBase.getCollectionName(), query, new JsonObject(Json.encode(item)), e -> {
-            if (e.succeeded()) resultHandler.handle(Future.succeededFuture());
-            else if (e.failed()) resultHandler.handle(Future.failedFuture(e.cause()));
-            else logger.info("No Callback");
-        });
-         **/
-
-
-    }
-
-    /**
-     *
-     * @param save
-     * @param objectId
-     * @param resultHandler
-     */
-    public void findOne(Class save, String objectId, Handler<AsyncResult<JsonObject>> resultHandler){
-
-        Collection collection = mongiDb.getDatabaseCollections().stream().filter(x -> x.getCollectionClazz().equals(save)).findFirst().get();
-
-        if(collection==null){
-            resultHandler.handle(Future.failedFuture("Collection does not exist"));
-            return;
-        }
-
-        JsonObject jsonObject = new JsonObject().put("_id", objectId);
-
-        mongoClient.findOne(collection.getCollectionName(), jsonObject, new JsonObject(), e -> {
-            if (e.succeeded()) resultHandler.handle(Future.succeededFuture(e.result()));
-            else if (e.failed()) resultHandler.handle(Future.failedFuture(e.cause()));
-            else logger.info("No Callback");
-        });
-
-
-    }
 
     /**
      *
