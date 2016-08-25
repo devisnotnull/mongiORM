@@ -30,7 +30,7 @@ Now that you have added these to you settings file you will be able to resolve c
 
 ```xml
 <dependency>
-     <groupId>com.secdata.mongi</groupId>
+     <groupId>com.stump201.mongi</groupId>
      <artifactId>mongi-core</artifactId>
      <version>18.0</version>
  </dependency>
@@ -79,7 +79,7 @@ Currently you can use Mongi with Vert.x 3.0 and the offical Vert.x mongo client
 Simply pass in a Vert.x instance along with the mongo config that you wish to use. Please note that with mongo once you have created a Mongo instance via its officall driver all new instances will use the same configuration unless you specify a new group within the config array.
 
 ```Java
-import com.secdata.mongi.MongiVertxTest;
+import com.stump201.mongi.MongiVertxTest;
 // You will need to use MongiVertx
 // Mongo is a really simple ORM that uses annotations and relfections
 Mongi mongi = new Mongi(vertx, mongoConfig);
