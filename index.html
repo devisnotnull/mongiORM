@@ -20,16 +20,45 @@
 
     <section class="main-content">
       <h1>
-<a id="what-is-mongiorm" class="anchor" href="#what-is-mongiorm" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>What is MongiORM</h1>
+<a id="mongi-mongo-orm" class="anchor" href="#mongi-mongo-orm" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Mongi Mongo ORM</h1>
+
+<h3>
+<a id="version-01" class="anchor" href="#version-01" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Version 0.1</h3>
+
+<h4>
+<a id="very-early-development" class="anchor" href="#very-early-development" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>VERY EARLY DEVELOPMENT</h4>
+
+<h2>
+<a id="what-is-mongi" class="anchor" href="#what-is-mongi" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>What is Mongi</h2>
 
 <p>Mongi is a simple ORM solution for MongoDB to hep overcome some of the limitations relating to Monogo within a java based envioment. Java doesnt undertand json in any useful way and as such most frameworks marshall json into POJO objects and Vice versa. </p>
 
 <p>Another method is to use a JSON builder such as in vert.x, But this approcach is both tricky and ugly.</p>
 
+<p>Build for vert.x 3, Using both standard asyncronous callbacks and observables. Future development will be more focused towards obvervables.</p>
+
+<h2>
+<a id="pre-reqs" class="anchor" href="#pre-reqs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pre-reqs</h2>
+
+<ul>
+<li>Vertx 3</li>
+<li>Google Gson</li>
+<li>RxJava </li>
+<li>Java 8 &gt; Lambda</li>
+</ul>
+
+<h2>
+<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO</h2>
+
+<ul>
+<li>Properly implement observables and RX-Java</li>
+<li>Implement proper Iquery interface</li>
+</ul>
+
 <div class="highlight highlight-text-xml"><pre>&lt;<span class="pl-ent">dependency</span>&gt;
-     &lt;<span class="pl-ent">groupId</span>&gt;com.secdata.mongi&lt;/<span class="pl-ent">groupId</span>&gt;
+     &lt;<span class="pl-ent">groupId</span>&gt;org.fandanzle.mongi&lt;/<span class="pl-ent">groupId</span>&gt;
      &lt;<span class="pl-ent">artifactId</span>&gt;mongi-core&lt;/<span class="pl-ent">artifactId</span>&gt;
-     &lt;<span class="pl-ent">version</span>&gt;18.0&lt;/<span class="pl-ent">version</span>&gt;
+     &lt;<span class="pl-ent">version</span>&gt;0.1-BETA&lt;/<span class="pl-ent">version</span>&gt;
  &lt;/<span class="pl-ent">dependency</span>&gt;
 </pre></div>
 
@@ -38,14 +67,14 @@
 
 <p>At its core Mongi is a simple ORM that runs off annotations wrapped around a class and its enclosed parameters. Given my experience with Mongo over the last few months i have grown fond of it but at the same time there are functions of a RDMS that i miss. </p>
 
-<p>Mongi is my solution to this problem.</p>
+<p>Mongi is my solution to this problem. Built in my spare time as both a research project into Java 8 and mongo.</p>
 
 <p>To use Mongi once you have imported the maven repo you will need to start by annotating your entities with the provided annotations. These annotations will persist across all situations.</p>
 
-<p><strong>@CollectionDefinition</strong>
+<p>@CollectionDefinition 
 This annotation is used to declare the name of the collections relating to this entity, logically one entity will generate one collection.</p>
 
-<p><strong><a href="https://github.com/UniqueIndex" class="user-mention">@UniqueIndex</a></strong>
+<p><a href="https://github.com/UniqueIndex" class="user-mention">@UniqueIndex</a>
 This annotations is used to mark the variables within the entity, At the moment this will only apply a unique index to the entity in question and a index is only one level deep, E.g you cannot apply and index to an array list type. If you apply a unique index to an type of iterable type then an exception will be thrown by Mongi.</p>
 
 <p>Below is a simple example, This example also used Google Gson. This is a typical pattern within the new Identity service and SCAP database.</p>
@@ -73,7 +102,7 @@ This annotations is used to mark the variables within the entity, At the moment 
 <p>Currently you can use Mongi with Vert.x 3.0 and the offical Vert.x mongo client
 Simply pass in a Vert.x instance along with the mongo config that you wish to use. Please note that with mongo once you have created a Mongo instance via its officall driver all new instances will use the same configuration unless you specify a new group within the config array.</p>
 
-<div class="highlight highlight-source-java"><pre><span class="pl-k">import</span> <span class="pl-smi">com.secdata.mongi.MongiVertxTest</span>;
+<div class="highlight highlight-source-java"><pre><span class="pl-k">import</span> <span class="pl-smi">org.fandanzle.mongi.MongiVertxTest</span>;
 <span class="pl-c">// You will need to use MongiVertx</span>
 <span class="pl-c">// Mongo is a really simple ORM that uses annotations and relfections</span>
 <span class="pl-smi">Mongi</span> mongi <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">Mongi</span>(vertx, mongoConfig);
@@ -84,7 +113,12 @@ mongi<span class="pl-k">.</span>buildOrmSolution(<span class="pl-s"><span class=
 <h3>
 <a id="mongo-and-vertrx--aka-observables" class="anchor" href="#mongo-and-vertrx--aka-observables" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Mongo and Vert.rx  AKA Observables</h3>
 
-<p>Im currently moving over all of the Identity service to Observables as opposed to the standard call back approach, As such Mongi is in development with this. Bu the principle will be much the same.</p>
+<p>Im currently moving over all of the Identity service to Observables as opposed to the standard call back approach, As such Mongi is in development with this. Bu the principle will be much the same.%  </p>
+
+<h2>
+<a id="contacts" class="anchor" href="#contacts" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contacts</h2>
+
+<p><a href="mailto:alexbrown201@googlemail.com">alexbrown201@googlemail.com</a></p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/stump201/mongiORM">Mongiorm</a> is maintained by <a href="https://github.com/stump201">stump201</a>.</span>
