@@ -1,13 +1,13 @@
-package com.stump201.mongi;
+package org.fandanzlee.mongi;
 
+import org.fandanzlee.mongi.entity.Cars;
+import org.fandanzlee.mongi.entity.Database;
+import org.fandanzlee.mongi.entity.Person;
+import org.fandanzlee.mongi.vertx.MongiVertx;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
-import com.stump201.mongi.adapter.MongoJsonToBson;
-import com.stump201.mongi.entity.Cars;
-import com.stump201.mongi.entity.Database;
-import com.stump201.mongi.entity.Person;
-import com.stump201.mongi.vertx.MongiVertx;
+import org.fandanzlee.mongi.adapter.MongoJsonToBson;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -82,7 +82,7 @@ public class MongiVertxTest {
 
         MongiVertx mongiVertx = new MongiVertx(vertx , config);
 
-        mongiVertx.buildOrmSolution("com.stump201.mongi.entity");
+        mongiVertx.buildOrmSolution("org.fandanzlee.mongi.entity");
 
         Database database = mongiVertx.mongiDb;
 
@@ -105,7 +105,6 @@ public class MongiVertxTest {
         Person person = new Person();
         person.setName("Alex Lee Brown");
         person.setHeight("33.4");
-
 
         mongiVertx.save(Cars.class, cars , e-> {
 
@@ -182,9 +181,7 @@ public class MongiVertxTest {
 
                 });
 
-
-
-                mongiVertx.findOne(Cars.class, e.result() , e1->{
+                mongiVertx.findOne(Cars.class, e.result() , e1 -> {
                     if(e1.succeeded()){
                         System.out.println(e1.result().encodePrettily());
                     }
