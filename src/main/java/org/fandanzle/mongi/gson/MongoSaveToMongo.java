@@ -1,4 +1,4 @@
-package com.stump201.mongi.gson;
+package org.fandanzle.mongi.gson;
 
 import com.google.gson.*;
 import org.bson.types.ObjectId;

@@ -1,4 +1,4 @@
-package com.stump201.mongi.gson;
+package org.fandanzle.mongi.gson;
 
 import java.lang.reflect.Type;
 import java.text.ParseException;

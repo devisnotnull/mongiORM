@@ -1,12 +1,12 @@
-package com.stump201.mongi;
+package org.fandanzle.mongi;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mongodb.util.JSON;
-import com.stump201.mongi.adapter.MongoJsonToBson;
-import com.stump201.mongi.entity.Person;
-import com.stump201.mongi.offical.MongiOffical;
-import com.stump201.mongi.offical.MongiOfficalAsync;
+import org.fandanzle.mongi.adapter.MongoJsonToBson;
+import org.fandanzle.mongi.entity.Person;
+import org.fandanzle.mongi.offical.MongiOffical;
+import org.fandanzle.mongi.offical.MongiOfficalAsync;
 import org.apache.log4j.Logger;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -73,7 +73,7 @@ public class MongiOfficalTest {
         System.out.println("VERTX INDEX CREATION");
 
         MongiOffical mongiOffical = new MongiOffical("test_mongi_offical", "localhost" , 27017);
-        mongiOffical.buildOrmSolution("com.stump201.mongi");
+        mongiOffical.buildOrmSolution("org.fandanzle.mongi");
 
         assertTrue(true);
 

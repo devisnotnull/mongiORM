@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/mongi.iml" filepath="$PROJECT_DIR$/.idea/mongi.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mongi-core.iml" filepath="$PROJECT_DIR$/mongi-core.iml" />
     </modules>
   </component>
 </project>

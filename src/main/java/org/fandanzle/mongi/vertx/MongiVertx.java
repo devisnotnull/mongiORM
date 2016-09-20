@@ -1,14 +1,14 @@
-package com.stump201.mongi.vertx;
+package org.fandanzle.mongi.vertx;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.stump201.mongi.IMongi;
-import com.stump201.mongi.annotation.*;
+import org.fandanzle.mongi.IMongi;
+import org.fandanzle.mongi.annotation.*;
 
-import com.stump201.mongi.entity.Collection;
-import com.stump201.mongi.entity.CollectionField;
-import com.stump201.mongi.entity.CollectionIndex;
-import com.stump201.mongi.entity.Database;
+import org.fandanzle.mongi.entity.Collection;
+import org.fandanzle.mongi.entity.CollectionField;
+import org.fandanzle.mongi.entity.CollectionIndex;
+import org.fandanzle.mongi.entity.Database;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -33,6 +33,10 @@ import java.util.*;
 public class MongiVertx implements IMongi {
 
     private static Logger logger = Logger.getLogger(MongiVertx.class);
+
+    // Boolean check, If set to true the schema will dropped and rebuild everytime
+    // an new instance of Mongi is created
+    private Boolean rebuildOnRun = false;
 
     private Gson jsonParser = new GsonBuilder()
             .setPrettyPrinting()
@@ -81,6 +85,10 @@ public class MongiVertx implements IMongi {
         return mongiDb;
     }
 
+    public MongiVertx setRebuild(Boolean rebuild){
+        rebuildOnRun = rebuild;
+        return this;
+    }
     /**
      *
      *
@@ -91,6 +99,7 @@ public class MongiVertx implements IMongi {
      */
     public MongiVertx buildOrmSolution(String packageName) {
 
+        System.out.println("Building ORM Solution !");
         // Store our collections
         List<Collection> collectionsList = new ArrayList<>();
         //
@@ -122,27 +131,23 @@ public class MongiVertx implements IMongi {
                     collection.setCollectionClazz(Class.forName(ii.getCanonicalName()));
                     collection.setCollectionFields(getCollectionFields(ii));
                     collection.setCollectionIndexes(getCollectionIndexes(ii));
-
                     definedClass.add(Class.forName(ii.getCanonicalName()));
-
                     mappedCollections.add(collection);
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-
             }
 
+            System.out.println("Finished processing entity " + ii.getCanonicalName());
         }
 
         database.setDatabaseCollections(mappedCollections);
         database.setDatabaseEntities(definedClass);
-
         mongiDb = database;
 
+
         // Iterate the collection annotations set
-        //createBulkIndexes(collectionIndex);
+        createBulkUniqueIndexes(collectionIndex);
 
         return this;
 
@@ -157,6 +162,7 @@ public class MongiVertx implements IMongi {
      */
     private List<CollectionIndex> getCollectionIndexes(Class collectionClass){
 
+        System.out.println("Fetching Collection indexes + " + collectionClass);
         // Get our Annotation and type check
         Annotation ano = collectionClass.getAnnotation(CollectionDefinition.class);
         // Check annotation is instance of ProviderTypeAnnotation.class
@@ -164,8 +170,10 @@ public class MongiVertx implements IMongi {
 
         List<CollectionIndex> indexList = new ArrayList<>();
 
-        if (ano instanceof CollectionDefinition) {
+        System.out.println("Collection Definition " + ano);
+        System.out.println("=============================");
 
+        if (ano instanceof CollectionDefinition) {
 
             Field[] fields = collectionClass.getDeclaredFields();
 
@@ -179,12 +187,8 @@ public class MongiVertx implements IMongi {
                     colIndex.setIndexField(field.getName());
                     colIndex.setIndexClazz(field.getType().toString());
                     colIndex.setIndexName(unique.indexName());
-
                     System.out.println( jsonParser.toJson( colIndex ) );
-
-
                     indexList.add( colIndex );
-
                     collectIndex.put(field.getName(), unique.indexName());
                 }
 
@@ -234,8 +238,6 @@ public class MongiVertx implements IMongi {
 
                     fieldList.add(collectionField);
 
-                    System.out.println( jsonParser.toJson( collectionField ) );
-
                 }
 
             }
@@ -252,37 +254,63 @@ public class MongiVertx implements IMongi {
      */
     private void createBulkUniqueIndexes(HashMap<String, HashMap<String, String>> indexMap) {
 
+        System.out.println("=========================================");
+        System.out.println("Bulk buiding indexes");
+        System.out.println(indexMap);
+        System.out.println("=========================================");
         // Iterate the collection annotations set
         for (Map.Entry<String, HashMap<String, String>> entry : indexMap.entrySet()) {
             String key = entry.getKey();
             HashMap<String, String> value = entry.getValue();
 
+            System.out.println("=========================================");
+            System.out.println("Bulk Collection index " + key);
+            System.out.println("=========================================");
+
             for (Map.Entry<String, String> index : value.entrySet()) {
                 String field = index.getKey();
                 String indexName = index.getValue();
-
+        
+                // Create our indexes using pass through commands
                 mongoClient.runCommand("createIndexes",
                     new JsonObject()
                             .put("createIndexes", key)
                             .put("indexes", new JsonArray()
-                                            .add(
-                                                    new JsonObject()
-                                                            .put("name", indexName)
-                                                            .put("key",
-                                                                    new JsonObject().put(field, 1)
-
-                                                            ).put("unique", true)
-                                                            .put("sparse", true)
-                                                    .put("expireAfterSeconds",60)
-                                            )
+                                .add(
+                                    new JsonObject()
+                                        .put("name", indexName)
+                                        .put("key", new JsonObject().put(field, 1))
+                                        .put("unique", true)
+                                        .put("sparse", true)
+                                    )
                             ),
                     cr -> {
+
+                        System.out.println(
+                                "Creating a new index !!!!"
+                        );
+
+                        System.out.print(
+                                Json.encodePrettily(
+                                        new JsonObject()
+                                                .put("createIndexes", key)
+                                                .put("indexes", new JsonArray()
+                                                                .add(
+                                                                        new JsonObject()
+                                                                                .put("name", indexName)
+                                                                                .put("key", new JsonObject().put(field, 1))
+                                                                                .put("unique", true)
+                                                                                .put("sparse", true)
+                                                                )
+                                                )
+                                )
+                        );
+
                         if (cr.succeeded()) {
                             JsonObject result = cr.result();
                             logger.info("Collection : " + key);
                             logger.info("DocumentField : " + field);
                             logger.info("IndexName : " + indexName);
-
                             logger.info("CreateIndexes succeeded result >" + result.encodePrettily());
                         } else {
                             logger.warn("CreateIndexes failed", cr.cause());
@@ -296,19 +324,10 @@ public class MongiVertx implements IMongi {
 
     /**
      *
-     *
-     */
-    private void createSigularIndex() {
-
-    }
-
-    /**
-     *
-     *
+     *   Get all collection indexes
      */
     public void listCollectionIndexes() {
 
-        /**
         mongoClient.runCommand("getIndexes",
             new JsonObject(),
             cr -> {
@@ -319,7 +338,6 @@ public class MongiVertx implements IMongi {
                     logger.warn("CreateIndexes failed", cr.cause());
                 }
             });
-         **/
 
     }
 

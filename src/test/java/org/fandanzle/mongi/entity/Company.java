@@ -1,12 +1,11 @@
-package com.stump201.mongi.entity;
+package org.fandanzle.mongi.entity;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.Since;
-import com.stump201.mongi.annotation.CollectionDefinition;
-import com.stump201.mongi.annotation.DocumentField;
-import com.stump201.mongi.annotation.TTLIndex;
-import com.stump201.mongi.annotation.UniqueIndex;
-
+import org.fandanzle.mongi.annotation.CollectionDefinition;
+import org.fandanzle.mongi.annotation.DocumentField;
+import org.fandanzle.mongi.annotation.TTLIndex;
+import org.fandanzle.mongi.annotation.UniqueIndex;
 import java.util.Date;
 
 /**
@@ -18,33 +17,21 @@ import java.util.Date;
 )
 public class Company {
 
-    @Expose(serialize = false, deserialize = true)
+    // You need to declare a class varible as an @DocumentFiel
+    @DocumentField(required = true)
     private String _id;
 
-    @Expose
-    @DocumentField
+    @DocumentField(required = true)
     @UniqueIndex(indexName = "name_unique_index")
     private String name;
 
-    @Expose
-    @DocumentField
+    @DocumentField(required = true)
     @UniqueIndex(indexName = "dob_unique_index")
     private Date dob;
 
-    @Expose
-    @DocumentField
+    @DocumentField(required = true)
     @UniqueIndex(indexName = "height_unique_index")
     private String height;
-
-    /**
-    public String get_id() {
-        return _id;
-    }
-
-    public void set_id(String _id) {
-        this._id = _id;
-    }
-     **/
 
     public String getName() {
         return name;

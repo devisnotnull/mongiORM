@@ -1,4 +1,4 @@
-package com.stump201.mongi.annotation;
+package org.fandanzle.mongi.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,5 +10,6 @@ import java.lang.annotation.Target;
 public @interface DocumentField {
 
     boolean required() default true;
+    boolean expose() default true;
 
 }

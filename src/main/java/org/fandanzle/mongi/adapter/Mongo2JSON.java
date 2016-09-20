@@ -1,4 +1,4 @@
-package com.stump201.mongi.adapter;
+package org.fandanzle.mongi.adapter;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

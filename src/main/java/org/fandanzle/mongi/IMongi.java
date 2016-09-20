@@ -1,4 +1,4 @@
-package com.stump201.mongi;
+package org.fandanzle.mongi;
 
 /**
  * Created by alexb on 19/04/2016.

@@ -1,10 +1,10 @@
-package com.stump201.mongi;
+package org.fandanzle.mongi;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.stump201.mongi.adapter.MongoJsonToBson;
-import com.stump201.mongi.entity.Person;
-import com.stump201.mongi.vertx.MongiRxVertx;
+import org.fandanzle.mongi.adapter.MongoJsonToBson;
+import org.fandanzle.mongi.entity.Person;
+import org.fandanzle.mongi.vertx.MongiRxVertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -24,7 +24,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
+ *
  * Created by alexb on 06/07/15.
+ *
  */
 //@RunWith(VertxUnitRunner.class)
 public class MongiRxVertxTest {
@@ -106,7 +108,7 @@ public class MongiRxVertxTest {
             JsonObject config = new JsonObject().put("db_name", "test_rx_vertx");
             MongiRxVertx mongiRxVertx = new MongiRxVertx(vertx, config);
 
-            mongiRxVertx.buildOrmSolution("com.stump201.mongi.entity");
+            mongiRxVertx.buildOrmSolution("org.fandanzle.mongi.entity");
 
         }catch (Exception e){
             e.printStackTrace();

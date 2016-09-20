@@ -1,7 +1,7 @@
-package com.stump201.mongi.vertx;
+package org.fandanzle.mongi.vertx;
 
-import com.stump201.mongi.annotation.CollectionDefinition;
-import com.stump201.mongi.annotation.UniqueIndex;
+import org.fandanzle.mongi.annotation.CollectionDefinition;
+import org.fandanzle.mongi.annotation.UniqueIndex;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

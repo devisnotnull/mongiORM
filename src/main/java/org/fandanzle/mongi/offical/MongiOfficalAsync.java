@@ -1,4 +1,4 @@
-package com.stump201.mongi.offical;
+package org.fandanzle.mongi.offical;
 
 
 import com.google.gson.Gson;
@@ -7,8 +7,8 @@ import com.mongodb.async.client.*;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.connection.ClusterSettings;
-import com.stump201.mongi.annotation.CollectionDefinition;
-import com.stump201.mongi.annotation.UniqueIndex;
+import org.fandanzle.mongi.annotation.CollectionDefinition;
+import org.fandanzle.mongi.annotation.UniqueIndex;
 import io.vertx.core.json.Json;
 import org.apache.log4j.Logger;
 import org.bson.Document;

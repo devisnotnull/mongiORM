@@ -1,8 +1,8 @@
-package com.stump201.mongi;
+package org.fandanzle.mongi;
 
-import com.stump201.mongi.annotation.CollectionDefinition;
-import com.stump201.mongi.annotation.UniqueIndex;
-import com.stump201.mongi.annotation.Id;
+import org.fandanzle.mongi.annotation.CollectionDefinition;
+import org.fandanzle.mongi.annotation.UniqueIndex;
+import org.fandanzle.mongi.annotation.Id;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
@@ -145,11 +145,10 @@ public class Mongi {
 
     /**
      *
-     *
+     * List all collectio index
      */
     public void listCollectionIndexes(){
-
-        /**
+    
         mongoClient.runCommand("getIndexes",
             new JsonObject(),
             cr -> {
@@ -160,7 +159,7 @@ public class Mongi {
                     logger.warn("CreateIndexes failed", cr.cause());
                 }
             });
-         **/
+
 
     }
 

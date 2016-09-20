@@ -1,8 +1,8 @@
-package com.stump201.mongi.entity;
+package org.fandanzle.mongi.entity;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.Since;
-import com.stump201.mongi.annotation.*;
+import org.fandanzle.mongi.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Date;

@@ -1,4 +1,4 @@
-package com.stump201.mongi.annotation;
+package org.fandanzle.mongi.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

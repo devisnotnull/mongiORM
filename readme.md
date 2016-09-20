@@ -21,7 +21,6 @@ Build for vert.x 3, Using both standard asyncronous callbacks and observables. F
 - Implement proper Iquery interface
 
 
-
 ```xml
 <dependency>
      <groupId>org.fandanzle.mongi</groupId>

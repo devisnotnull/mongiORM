@@ -1,7 +1,7 @@
-package com.stump201.mongi.entity;
+package org.fandanzle.mongi.entity;
 
 import com.google.gson.annotations.Expose;
-import com.stump201.mongi.annotation.*;
+import org.fandanzle.mongi.annotation.*;
 
 /**
  * Java pojo class for clients
@@ -13,16 +13,22 @@ import com.stump201.mongi.annotation.*;
 public class Cars {
 
 
-    @Expose(serialize = false, deserialize = true)
+    @Expose(
+            serialize = false, deserialize = true
+    )
     private String _id;
 
     @Expose
     @DocumentField
-    @UniqueIndex(indexName = "car_numberplate_name_unique_index")
+    @UniqueIndex(
+            indexName = "car_numberplate_name_unique_index"
+    )
     private String numberplate;
 
     @Expose
-    @DocumentField(required = true)
+    @DocumentField(
+            required = true
+    )
     private String vinNumber;
 
     @Expose

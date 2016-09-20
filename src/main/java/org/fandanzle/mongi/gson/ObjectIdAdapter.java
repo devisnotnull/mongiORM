@@ -1,4 +1,4 @@
-package com.stump201.mongi.gson;
+package org.fandanzlengi.gson;
 
 import java.io.IOException;
 import java.lang.reflect.Type;

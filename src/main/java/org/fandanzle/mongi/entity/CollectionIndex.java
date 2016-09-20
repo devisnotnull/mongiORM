@@ -1,4 +1,4 @@
-package com.stump201.mongi.entity;
+package org.fandanzle.mongi.entity;
 
 import com.google.gson.annotations.Expose;
 
