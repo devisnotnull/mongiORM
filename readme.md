@@ -1,4 +1,7 @@
 # Mongi Mongo ORM
+
+![alt tag](https://circleci.com/gh/stump201/mongiORM.svg?style=shield&circle-token=:circle-token)
+
 ### Version 0.1
 #### VERY EARLY DEVELOPMENT
 ## What is Mongi
