@@ -1,0 +1,86 @@
+<project name="SecureData Vulnerability Database">
+
+    <skin>
+        <groupId>lt.velykis.maven.skins</groupId>
+        <artifactId>reflow-maven-skin</artifactId>
+        <version>1.1.1</version>
+    </skin>
+
+    <custom>
+        <reflowSkin>
+            <theme>bootswatch-spacelab</theme>
+            <highlightJs>true</highlightJs>
+            <brand>
+                <name>
+                    <![CDATA[
+                    <span class="color-highlight">Fandanzle</span>
+                    ]]>
+                </name>
+                <href>/</href>
+            </brand>
+            <slogan>MongiORM | Vert.x 3</slogan>
+            <titleTemplate>%2$s | %1$s</titleTemplate>
+            <toc>top</toc>
+            <tocTopMax>6</tocTopMax>
+            <!-- Split menus in the bottom navigation -->
+            <bottomDescription>
+                <![CDATA[
+                  <span class="color-highlight">Reflow</span> is an Apache Maven site skin built on
+                  <a href="http://getbootstrap.com" title="Bootstrap">Bootstrap</a>.
+                  It allows various structural and stylistic customizations to create a
+                  modern-looking Maven-generated website.
+                ]]>
+            </bottomDescription>
+            <bottomNav>
+
+
+            </bottomNav>
+            <bottomDescription>
+                MongiORM | Vert.x 3
+            </bottomDescription>
+            <skinAttribution>false</skinAttribution>
+            <pages>
+                <index project="mongi">
+                    <!-- no breadcrumbs on the main index page -->
+                    <breadcrumbs>true</breadcrumbs>
+                    <!-- no ToC on the main index page -->
+                    <toc>false</toc>
+                    <markPageHeader>false</markPageHeader>
+                    <sections>
+                        <carousel />
+                        <columns>2</columns>
+                        <body />
+                        <sidebar />
+                    </sections>
+                </index>
+                <contribute>
+                    <breadcrumbs>false</breadcrumbs>
+                </contribute>
+                <!-- Disable source highlighting for Maven reports -->
+                <source-repository>
+                    <highlightJs>true</highlightJs>
+                </source-repository>
+                <issue-tracking>
+                    <highlightJs>true</highlightJs>
+                    <toc>false</toc>
+                </issue-tracking>
+                <license>
+                    <highlightJs>false</highlightJs>
+                    <toc>false</toc>
+                </license>
+                <!-- Disable ToC for some Maven reports -->
+                <dependencies>
+                    <tocTopMax>4</tocTopMax>
+                </dependencies>
+            </pages>
+        </reflowSkin>
+    </custom>
+
+    <publishDate position="right" />
+    <version position="right" />
+
+    <body>
+
+    </body>
+
+</project>
