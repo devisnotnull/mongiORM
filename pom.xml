@@ -14,9 +14,9 @@
         <developer>
             <id>alexb</id>
             <name>Alex Brown</name>
-            <email>alex.brown@secdata.com</email>
-            <organization>SecureData Europe</organization>
-            <organizationUrl>http://www.secdata.com</organizationUrl>
+            <email>alexbrown201@googlemail.com</email>
+            <organization>Fandanzle</organization>
+            <organizationUrl>http://stump201.github.io</organizationUrl>
             <roles>
                 <role>Developer</role>
                 <role>Builder of things</role>
@@ -26,48 +26,14 @@
     </developers>
 
     <issueManagement>
-        <system>Jira</system>
-        <url>http://jira.alpha.mis-cds.local/browse/AS/?selectedTab=com.atlassian.jira.jira-projects-plugin:summary-panel</url>
+        <system>GitHub</system>
+        <url>https://github.com/stump201/mongiORM/issues</url>
     </issueManagement>
 
     <scm>
-        <developerConnection>scm:git:http://[username]@stash.alpha.mis-cds.local/projects/AP/repos/securedata-identity-service/browse</developerConnection>
-        <url>http://stash.alpha.mis-cds.local/scm/ap/securedata-identity-service.git</url>
+        <developerConnection>scm:git@github.com:stump201/mongiORM.git</developerConnection>
+        <url>git@github.com:stump201/mongiORM.git</url>
     </scm>
-
-    <repositories>
-
-        <repository>
-            <id>nexus</id>
-            <name>Internal Releases</name>
-            <url>http://192.168.61.133:8081/content/repositories/releases/</url>
-        </repository>
-
-        <repository>
-            <id>snap</id>
-            <name>Internal Releases</name>
-            <url>http://192.168.61.133:8081/content/repositories/snapshots/</url>
-        </repository>
-
-    </repositories>
-
-    <distributionManagement>
-
-
-        <repository>
-            <id>nexus</id>
-            <name>Internal Releases</name>
-            <url>http://192.168.61.133:8081/content/repositories/releases/</url>
-        </repository>
-
-        <snapshotRepository>
-            <id>nexus</id>
-            <name>Internal Snapshots</name>
-            <url>http://192.168.61.133:8081/content/repositories/snapshots</url>
-        </snapshotRepository>
-
-    </distributionManagement>
-
 
     <dependencies>
 
