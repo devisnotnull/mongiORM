@@ -3,11 +3,8 @@ package org.fandanzle.mongi;
 import org.fandanzle.mongi.entity.Cars;
 import org.fandanzle.mongi.entity.Database;
 import org.fandanzle.mongi.entity.Person;
-import org.fandanzle.mongi.vertx.MongiVertx;
-import org.fandanzle.mongi.vertx.*;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.fandanzle.mongi.adapter.MongoJsonToBson;
+import org.fandanzle.mongi.vertx.Mongi;
+
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -16,10 +13,15 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.apache.log4j.Logger;
 import org.bson.types.ObjectId;
+import org.fandanzle.mongi.vertx.Query;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -32,13 +34,6 @@ import static org.junit.Assert.*;
 public class MongiVertxTest {
 
     private Logger logger = Logger.getLogger(MongiVertxTest.class);
-
-    private Gson gson = new GsonBuilder()
-            .serializeNulls()
-            .registerTypeAdapter(ObjectId.class, MongoJsonToBson.oidToBson)
-            .registerTypeAdapter(Date.class, MongoJsonToBson.dateToBson)
-            .create();
-
     private Vertx vertx;
 
     /**
@@ -57,6 +52,64 @@ public class MongiVertxTest {
      * @param context
      */
     @Test
+    public void bulkCarsCreate(TestContext context) {
+
+        vertx = Vertx.vertx();
+
+        final Async async = context.async();
+
+        JsonObject config = new JsonObject().put("db_name", "test_vertx");
+        // Build our ORM profile
+        Mongi mongi = new Mongi(vertx , config);
+        mongi.buildOrmSolution("org.fandanzle.mongi.entity").setRebuild(true);
+        // Start query proxy
+        Query query = new Query(mongi);
+
+        Integer i = 100;
+
+        List<Cars> carsList = new ArrayList<Cars>();
+
+        while (i>0){
+
+            Cars cars = new Cars();
+            cars.setNumberplate(UUID.randomUUID().toString());
+            cars.setColor("BLUE");
+
+            System.out.println("--------------------------------------------------------");
+            System.out.println("Creating Car");
+            System.out.println("--------------------------------------------------------");
+            System.out.println( Json.encodePrettily( cars ) ) ;
+
+            carsList.add(cars);
+            i--;
+        }
+
+        query.insertBulk(Cars.class, carsList, handler->{
+
+            if (handler.succeeded()){
+                System.out.println("=========================");
+                System.out.println("Car object was sucessfully saved and found again ! HORRAR !!");
+                System.out.print( handler.result() );
+                System.out.println("=========================");
+                async.complete();
+                assertTrue(true);
+            }
+            else if (handler.failed()){
+                System.out.println(handler.cause().getMessage());
+                handler.cause().printStackTrace();
+                async.complete();
+                assertTrue(false);
+            }
+
+        });
+
+    }
+
+    /**
+     *
+     * @param context
+     */
+    //@Test
     public void testMongoIndexCreation(TestContext context){
 
         vertx = Vertx.vertx();
@@ -65,7 +118,7 @@ public class MongiVertxTest {
 
         JsonObject config = new JsonObject().put("db_name", "test_vertx");
 
-        MongiVertx mongiVertx = new MongiVertx(vertx , config);
+        Mongi mongiVertx = new Mongi(vertx , config);
 
         System.out.println("--------------------------------------------------------");
         System.out.println("Building ORM profiile");
@@ -88,9 +141,8 @@ public class MongiVertxTest {
         System.out.println( Json.encodePrettily( database.getDatabaseEntities()) ) ;
 
         Cars cars = new Cars();
-        cars.setNumberplate("KJGD887JH");
+        cars.setNumberplate(UUID.randomUUID().toString());
         cars.setColor("BLUE");
-        cars.setNumberplate("qfefwrgvregerg");
 
         System.out.println("--------------------------------------------------------");
         System.out.println("Creating Car");
@@ -106,15 +158,15 @@ public class MongiVertxTest {
         System.out.println("--------------------------------------------------------");
         System.out.println( Json.encodePrettily( cars ) ) ;
 
-        IQuery query = new IQuery(mongiVertx);
+        Query query = new Query(mongiVertx);
 
         System.out.println("--------------------------------------------------------");
         System.out.println("Starting our query");
         System.out.println("--------------------------------------------------------");
 
-        query.save(Cars.class, cars , e-> {
+        query.insert(Cars.class, cars , e-> {
 
-            System.out.println("=========================");
+            System.out.println("========================");
             System.out.println("Primary query");
             System.out.println("=========================");
 
@@ -125,12 +177,16 @@ public class MongiVertxTest {
                 System.out.println("=========================");
                 System.out.println( Json.encodePrettily(  e.result() ) );
 
+                async.complete();
+                assertTrue(true);
+
+
                 query.findOne(Cars.class, e.result() , find ->{
 
                     if (find.succeeded()){
                         System.out.println("=========================");
                         System.out.println("Car object was sucessfully saved and found again ! HORRAR !!");
-                        System.out.print( find.result().encodePrettily() );
+                        System.out.print( find.result() );
                         System.out.println("=========================");
                         async.complete();
                         assertTrue(true);
@@ -145,10 +201,19 @@ public class MongiVertxTest {
                     }
 
                 });
+
             }
             if(e.failed()){
                 System.out.println("=========================");
                 System.out.println("ERROR WERE NOT LINKED");
+                //e.cause().printStackTrace();
+                System.out.println("=========================");
+                System.out.println(e.cause().getClass());
+                System.out.println(e.cause().getMessage());
+                System.out.println("=========================");
+
+                async.complete();
+                assertFalse(true);
             }
 
         });

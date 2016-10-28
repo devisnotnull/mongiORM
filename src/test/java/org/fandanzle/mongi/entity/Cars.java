@@ -1,5 +1,6 @@
 package org.fandanzle.mongi.entity;
 
+
 import com.google.gson.annotations.Expose;
 import org.fandanzle.mongi.annotation.*;
 

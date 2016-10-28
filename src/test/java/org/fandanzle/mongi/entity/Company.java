@@ -2,10 +2,8 @@ package org.fandanzle.mongi.entity;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.Since;
-import org.fandanzle.mongi.annotation.CollectionDefinition;
-import org.fandanzle.mongi.annotation.DocumentField;
-import org.fandanzle.mongi.annotation.TTLIndex;
-import org.fandanzle.mongi.annotation.UniqueIndex;
+import org.fandanzle.mongi.annotation.*;
+
 import java.util.Date;
 
 /**
@@ -18,6 +16,7 @@ import java.util.Date;
 public class Company {
 
     // You need to declare a class varible as an @DocumentFiel
+    @Id(indexName = "_id")
     @DocumentField(required = true)
     private String _id;
 

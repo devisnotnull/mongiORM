@@ -17,8 +17,10 @@ import java.util.List;
 )
 public class Person {
 
+    @Id(indexName = "_id")
     @Expose(serialize = false, deserialize = true)
     private String _id;
+
     @Expose
     @DocumentField
     @UniqueIndex(indexName = "name_unique_index")

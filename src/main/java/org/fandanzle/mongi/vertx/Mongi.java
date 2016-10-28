@@ -9,9 +9,6 @@ import org.fandanzle.mongi.entity.Collection;
 import org.fandanzle.mongi.entity.CollectionField;
 import org.fandanzle.mongi.entity.CollectionIndex;
 import org.fandanzle.mongi.entity.Database;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -30,9 +27,9 @@ import java.util.*;
  * Created by alexb on 11/02/2016.
  *
  */
-public class MongiVertx implements IMongi {
+public class Mongi implements IMongi {
 
-    private static Logger logger = Logger.getLogger(MongiVertx.class);
+    private static Logger logger = Logger.getLogger(Mongi.class);
 
     // Boolean check, If set to true the schema will dropped and rebuild everytime
     // an new instance of Mongi is created
@@ -55,7 +52,7 @@ public class MongiVertx implements IMongi {
      * @param vertx
      *
      */
-    public MongiVertx(Vertx vertx) {
+    public Mongi(Vertx vertx) {
         mongoClient = MongoClient.createShared(vertx, new JsonObject());
     }
 
@@ -65,7 +62,7 @@ public class MongiVertx implements IMongi {
      * @param config
      *
      */
-    public MongiVertx(Vertx vertx, JsonObject config) {
+    public Mongi(Vertx vertx, JsonObject config) {
         mongoClient = MongoClient.createShared(vertx, config);
     }
 
@@ -85,10 +82,16 @@ public class MongiVertx implements IMongi {
         return mongiDb;
     }
 
-    public MongiVertx setRebuild(Boolean rebuild){
+    /**
+     * Rebuild solution on rebuild
+     * @param rebuild
+     * @return
+     */
+    public Mongi setRebuild(Boolean rebuild){
         rebuildOnRun = rebuild;
         return this;
     }
+
     /**
      *
      *
@@ -97,14 +100,13 @@ public class MongiVertx implements IMongi {
      * @param packageName
      * @return
      */
-    public MongiVertx buildOrmSolution(String packageName) {
+    public Mongi buildOrmSolution(String packageName) {
 
         System.out.println("Building ORM Solution !");
         // Store our collections
         List<Collection> collectionsList = new ArrayList<>();
-        //
+        // HashMap to store all indexes
         HashMap<String, HashMap<String, String>> collectionIndex = new HashMap<String, HashMap<String, String>>();
-        // TODO create IDP providers and store on verticle creation
         // Hashmap to store IDP providers
         // Java reflections, We loads the IDP providers via generics
         Reflections reflections = new Reflections(packageName);
@@ -136,6 +138,30 @@ public class MongiVertx implements IMongi {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                try{
+
+                    HashMap<String,String> collectIndex = new HashMap<String, String>();
+                    CollectionDefinition myAnnotation = (CollectionDefinition) collectionDefinition;
+                    Method[] methods = ii.getDeclaredMethods();
+                    Field[] fields = ii.getDeclaredFields();
+
+                    logger.info("Class fields : ");
+                    for(Field field : fields){
+                        logger.info(field.getName());
+                        UniqueIndex unique = field.getAnnotation(UniqueIndex.class);
+                        if(unique != null){
+                            logger.info("Index to process");
+                            logger.info(field.getName());
+                            logger.info(unique.indexName());
+                            collectIndex.put(field.getName() , unique.indexName());
+                        }
+                        collectionIndex.put(myAnnotation.collectionName(), collectIndex);
+                    }
+
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
             }
 
             System.out.println("Finished processing entity " + ii.getCanonicalName());
@@ -144,7 +170,6 @@ public class MongiVertx implements IMongi {
         database.setDatabaseCollections(mappedCollections);
         database.setDatabaseEntities(definedClass);
         mongiDb = database;
-
 
         // Iterate the collection annotations set
         createBulkUniqueIndexes(collectionIndex);
@@ -160,7 +185,7 @@ public class MongiVertx implements IMongi {
      * @param collectionClass
      *
      */
-    private List<CollectionIndex> getCollectionIndexes(Class collectionClass){
+    public List<CollectionIndex> getCollectionIndexes(Class collectionClass){
 
         System.out.println("Fetching Collection indexes + " + collectionClass);
         // Get our Annotation and type check
@@ -205,7 +230,7 @@ public class MongiVertx implements IMongi {
      * @param collectionClass
      *
      */
-    private List<CollectionField> getCollectionFields(Class collectionClass){
+    public List<CollectionField> getCollectionFields(Class collectionClass){
 
         // Get our Annotation and type check
         Annotation ano = collectionClass.getAnnotation(CollectionDefinition.class);
@@ -249,16 +274,11 @@ public class MongiVertx implements IMongi {
 
 
     /**
-     *
+     * Create all of our bulk indexes
      * @param indexMap
      */
-    private void createBulkUniqueIndexes(HashMap<String, HashMap<String, String>> indexMap) {
+    public void createBulkUniqueIndexes(HashMap<String, HashMap<String, String>> indexMap) {
 
-        System.out.println("=========================================");
-        System.out.println("Bulk buiding indexes");
-        System.out.println(indexMap);
-        System.out.println("=========================================");
-        // Iterate the collection annotations set
         for (Map.Entry<String, HashMap<String, String>> entry : indexMap.entrySet()) {
             String key = entry.getKey();
             HashMap<String, String> value = entry.getValue();
