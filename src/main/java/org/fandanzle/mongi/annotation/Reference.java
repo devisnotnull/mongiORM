@@ -7,10 +7,9 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD) //can use in method only.
-public @interface DocumentField {
+public @interface Reference {
 
-    boolean required() default true;
-    boolean expose() default true;
-    String name() default "";
+    // Class linkedCollection();
+    // String mappedBy();
 
 }

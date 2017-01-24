@@ -2,6 +2,8 @@ package org.fandanzle.mongi.vertx;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import io.vertx.core.cli.converters.BooleanConverter;
 import org.fandanzle.mongi.IMongi;
 import org.fandanzle.mongi.annotation.*;
 
@@ -20,6 +22,7 @@ import org.reflections.Reflections;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.time.LocalTime;
 import java.util.*;
 
 /**
@@ -35,24 +38,45 @@ public class Mongi implements IMongi {
     // an new instance of Mongi is created
     private Boolean rebuildOnRun = false;
 
+    //
+    private final Set<Class> grantedClazz = new HashSet<>();
+
+    // List of type adapters for GSON
+    // Add in jackson equiv
+    private HashMap<Class, TypeAdapter> registeredTypeAdapters = new HashMap<>();
+
+    //
     private Gson jsonParser = new GsonBuilder()
             .setPrettyPrinting()
             .excludeFieldsWithoutExposeAnnotation()
             .serializeNulls()
             .create();
 
-    private String database;
-
+    //
     private MongoClient mongoClient;
 
+    //
     private Database mongiDb = new Database();
 
     /**
      *
      * @param vertx
-     *
      */
     public Mongi(Vertx vertx) {
+
+        /*
+         * We need a list of classes, These will need to be linked to TypeAdapters
+         */
+        Class[] allow = {
+                String.class,
+                Integer.class,
+                Boolean.class,
+                Double.class,
+                Date.class,
+                Calendar.class,
+                LocalTime.class
+        };
+
         mongoClient = MongoClient.createShared(vertx, new JsonObject());
     }
 
@@ -60,14 +84,13 @@ public class Mongi implements IMongi {
      *
      * @param vertx
      * @param config
-     *
      */
     public Mongi(Vertx vertx, JsonObject config) {
         mongoClient = MongoClient.createShared(vertx, config);
     }
 
     /**
-     *
+     * Fetch an instance of the mongo client
      * @return
      */
     public MongoClient getMongoClient(){
@@ -75,11 +98,19 @@ public class Mongi implements IMongi {
     }
 
     /**
-     *
+     * Get the current mongodatabase
      * @return
      */
     public Database getMongoDatabase(){
         return mongiDb;
+    }
+
+    /**
+     *
+     * @param adapter
+     */
+    public void registerTypeAdapter(Class class, TypeAdapter adapter){
+
     }
 
     /**
@@ -102,7 +133,7 @@ public class Mongi implements IMongi {
      */
     public Mongi buildOrmSolution(String packageName) {
 
-        System.out.println("Building ORM Solution !");
+        logger.info("Building ORM Solution !");
         // Store our collections
         List<Collection> collectionsList = new ArrayList<>();
         // HashMap to store all indexes
@@ -127,6 +158,9 @@ public class Mongi implements IMongi {
             if (collectionDefinition instanceof CollectionDefinition) {
 
                 try {
+
+                    // Create base object for the collection
+                    // Used to generate the base
                     Collection collection = new Collection();
                     collection.setCollectionName(((CollectionDefinition) collectionDefinition).collectionName());
                     collection.setCollectionClass(ii.getCanonicalName());
@@ -135,27 +169,109 @@ public class Mongi implements IMongi {
                     collection.setCollectionIndexes(getCollectionIndexes(ii));
                     definedClass.add(Class.forName(ii.getCanonicalName()));
                     mappedCollections.add(collection);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
                 try{
 
-                    HashMap<String,String> collectIndex = new HashMap<String, String>();
+                    // Fields
+                    HashMap<String, Field> fieldsColl = new HashMap<>();
+                    //HashMap<String, >
+
+                    /**
+                     *
+
+                     Implement SPI interface to dynamically load in new modules for annotations
+
+                     How to store Type adapters
+
+                     */
+                    /**
+                     [
+                        {
+                            'name': 'cars',
+                            'clazz': 'com.secdata.mongi.entity.Cars.class'
+                            'idField' : '_id',
+                            'unique' : [
+                            ],
+                            'fields': [
+                                '_id' : 'String',
+                                'vinNumber' : 'Integer',
+
+                            ]
+                        }
+                     ]
+
+                     */
+
+                    // Fetch the individual methods from collection
+                    //
+                    HashMap<String,String> collectIndex = new HashMap<>();
                     CollectionDefinition myAnnotation = (CollectionDefinition) collectionDefinition;
                     Method[] methods = ii.getDeclaredMethods();
                     Field[] fields = ii.getDeclaredFields();
 
+                    // Iterate all the base fields withing the class
                     logger.info("Class fields : ");
                     for(Field field : fields){
-                        logger.info(field.getName());
+
+                        logger.info("Field to process - " + field.getName());
+                        // Add annotations to array
+                        Annotation[] fieldAnnotations = field.getAnnotations();
+                        //
+                        for( int i = 0; i < fieldAnnotations.length - 1; i++)
+                        {
+                            //
+                            String clazz = fieldAnnotations[i].annotationType().getClass().getCanonicalName();
+                            logger.info("=============================");
+                            logger.info("Processing new annotation");
+                            logger.info("=============================");
+                            logger.info(clazz);
+
+                        }
+
+                        /*
+                         * Document field
+                         */
+                        DocumentField documentField = field.getAnnotation(DocumentField.class);
+                        if(documentField != null){
+
+                            if(!documentField.name().equals("")){
+                                fieldsColl.putIfAbsent(documentField.name(), field);
+                            }else{
+                                fieldsColl.put(field.getName(), field);
+                            }
+
+                        }
+
+                        /*
+                         * Unique index handler
+                         */
                         UniqueIndex unique = field.getAnnotation(UniqueIndex.class);
                         if(unique != null){
+
                             logger.info("Index to process");
                             logger.info(field.getName());
                             logger.info(unique.indexName());
                             collectIndex.put(field.getName() , unique.indexName());
+
                         }
+
+                        /*
+                         * References handler
+                         */
+                        Reference reference = field.getAnnotation(Reference.class);
+                        if(reference != null){
+
+                            logger.info("Referenced field to process");
+                            collectIndex.put(field.getName() , unique.indexName());
+
+                        }
+
+
+                        // Add collection to the list
                         collectionIndex.put(myAnnotation.collectionName(), collectIndex);
                     }
 
@@ -187,16 +303,16 @@ public class Mongi implements IMongi {
      */
     public List<CollectionIndex> getCollectionIndexes(Class collectionClass){
 
-        System.out.println("Fetching Collection indexes + " + collectionClass);
+        logger.info("Fetching Collection indexes + " + collectionClass);
         // Get our Annotation and type check
         Annotation ano = collectionClass.getAnnotation(CollectionDefinition.class);
         // Check annotation is instance of ProviderTypeAnnotation.class
         HashMap<String, String> collectIndex = new HashMap<String, String>();
-
+        //
         List<CollectionIndex> indexList = new ArrayList<>();
-
-        System.out.println("Collection Definition " + ano);
-        System.out.println("=============================");
+        //
+        logger.info("Collection Definition " + ano);
+        logger.info("=============================");
 
         if (ano instanceof CollectionDefinition) {
 
@@ -212,7 +328,7 @@ public class Mongi implements IMongi {
                     colIndex.setIndexField(field.getName());
                     colIndex.setIndexClazz(field.getType().toString());
                     colIndex.setIndexName(unique.indexName());
-                    System.out.println( jsonParser.toJson( colIndex ) );
+                    logger.info( jsonParser.toJson( colIndex ) );
                     indexList.add( colIndex );
                     collectIndex.put(field.getName(), unique.indexName());
                 }

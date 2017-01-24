@@ -4,13 +4,13 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.Since;
 import org.fandanzle.mongi.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
+ *
  * Java pojo class for clients
  * Created by alexb on 18/11/2015.
+ *
  */
 @CollectionDefinition(
         collectionName = "test_person_collection"
@@ -37,14 +37,15 @@ public class Person {
     private String height;
 
     @DocumentField
+    @Reference
     @LinkedCollection(linkedCollection = Cars.class)
-    private List<String> cars = new ArrayList<>();
+    private Set<Cars> cars = new HashSet<>();
 
-    public List<String> getCars() {
+    public Set<Cars> getCars() {
         return cars;
     }
 
-    public void setCars(List<String> cars) {
+    public void setCars(Set<Cars> cars) {
         this.cars = cars;
     }
 

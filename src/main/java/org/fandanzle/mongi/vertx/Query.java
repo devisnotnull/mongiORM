@@ -19,7 +19,9 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 /**
+ *
  * Created by alexb on 19/04/2016.
+ *
  */
 public class Query implements IQuery<Handler<AsyncResult<JsonObject>>> {
 
@@ -63,6 +65,19 @@ public class Query implements IQuery<Handler<AsyncResult<JsonObject>>> {
             else if (e.failed()) handler.handle(Future.failedFuture(e.cause()));
             else logger.info("No Callback");
         });
+
+        return this;
+    }
+
+
+    /**
+     *
+     * @param clazz
+     * @param id
+     * @param handler
+     * @return
+     */
+    public Query query( Class clazz, Handler<AsyncResult<JsonObject>> handler){
 
         return this;
     }
