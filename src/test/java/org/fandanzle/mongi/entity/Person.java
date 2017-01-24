@@ -1,8 +1,5 @@
 package org.fandanzle.mongi.entity;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.Since;
-import org.bson.types.ObjectId;
 import org.fandanzle.mongi.annotation.*;
 
 import java.util.*;
@@ -32,29 +29,44 @@ public class Person {
     )
     private Date dob;
 
-    @DocumentField(
-            expose = true
-    )
+    @DocumentField
     private String height;
 
-    @DocumentField(
-            expose = true
-    )
+    @DocumentField
     @Embedded(linkedCollection = Cars.class)
     private Set<Cars> carsEmbed = new HashSet<>();
 
-    @DocumentField(
-            expose = true
-    )
+    @DocumentField
     @Reference(linkedCollection = Cars.class)
     private Set<Cars> carsReference = new HashSet<>();
+
+    @DocumentField
+    @Embedded(linkedCollection = Phones.class)
+    private Set<Phones> phonesEmbed = new HashSet<>();
+
+    @DocumentField
+    @Reference(linkedCollection = Phones.class)
+    private Set<Phones> phonesReference = new HashSet<>();
 
     public UUID get_id() {
         return _id;
     }
 
-    public Person set_id(UUID _id) {
-        this._id = _id;
+    public Set<Phones> getPhonesEmbed() {
+        return phonesEmbed;
+    }
+
+    public Person setPhonesEmbed(Set<Phones> phonesEmbed) {
+        this.phonesEmbed = phonesEmbed;
+        return this;
+    }
+
+    public Set<Phones> getPhonesReference() {
+        return phonesReference;
+    }
+
+    public Person setPhonesReference(Set<Phones> phonesReference) {
+        this.phonesReference = phonesReference;
         return this;
     }
 

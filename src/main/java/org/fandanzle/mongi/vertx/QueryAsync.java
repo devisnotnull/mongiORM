@@ -33,7 +33,7 @@ import java.util.function.Function;
  * Created by alexb on 19/04/2016.
  *
  */
-public class QueryAsync implements IQuery {
+public class QueryAsync {
 
     private static Logger logger = Logger.getLogger(QueryAsync.class);
 

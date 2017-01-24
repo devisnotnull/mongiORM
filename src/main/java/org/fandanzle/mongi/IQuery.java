@@ -12,7 +12,7 @@ import java.util.List;
  */
 public interface IQuery {
 
-    <T> IQuery findOne(T clazz, Object id, Handler<AsyncResult<T>> handler);
+    <T> IQuery findOne(Class<T> clazz, Object id, Handler<AsyncResult<T>> handler);
     <T> IQuery insert(Class<T> clazz, Object object, Handler<AsyncResult<String>> handler);
 
     /**

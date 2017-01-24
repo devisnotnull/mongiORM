@@ -60,7 +60,7 @@ public class Query implements IQuery {
      * @param handler
      * @return
      */
-    public <FT> Query findOne( FT clazz, Object id, Handler<AsyncResult<FT>> handler){
+    public <FT> Query findOne( Class<FT> clazz, Object id, Handler<AsyncResult<FT>> handler){
 
         System.out.println(clazz);
         System.out.println(clazz.getClass());
@@ -140,9 +140,10 @@ public class Query implements IQuery {
                 }
 
                 JsonTransform.jsonToObject(clazz, result, transformHandler -> {
-                    if (transformHandler.succeeded()) handler.handle(Future.succeededFuture( transformHandler.result()));
+                    if (transformHandler.succeeded()) handler.handle(Future.succeededFuture( (FT) transformHandler.result() ));
                     else handler.handle(Future.failedFuture(transformHandler.cause()));
                 });
+
             }
             else if (e.failed()) handler.handle(Future.failedFuture(e.cause()));
             else logger.info("No Callback");

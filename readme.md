@@ -22,6 +22,7 @@ Build for vert.x 3, Using both standard asyncronous callbacks and observables(AK
 
 - Properly implement observables and RX-Java
 - Implement proper Iquery interface
+- Move away from GSON to jackson, Vertx uses Jackson. But i know GSON better.
 
 
 ```xml
@@ -41,6 +42,9 @@ Mongi is my solution to this problem. Built in my spare time as both a research 
 
 To use Mongi once you have imported the maven repo you will need to start by annotating your entities with the provided annotations. These annotations will persist across all situations.
 
+@Id
+This annotation must be used to describe the primary ID to use, Best practise is to use a UUID. You need to call the variable _id to reflect standard mongo
+
 @CollectionDefinition 
 This annotation is used to declare the name of the collections relating to this entity, logically one entity will generate one collection.
 
@@ -54,6 +58,9 @@ This annotations is used to mark the variables within the entity, At the moment 
 )
 public class ExampleEntity {
 
+    @Id(indexName = "_id")
+    private UUID _id = UUID.randomUUID();
+    
     @Since(1.0)
     @Expose
     @UniqueIndex(indexName = "entity_id_unique_index")
@@ -64,20 +71,28 @@ public class ExampleEntity {
     @UniqueIndex(indexName = "entity_name_unique_index")
     private String entityName;
     
-    @Since(1.0)
-    @Expose
-    @Embed
-    private Set <User>;
+    /**
     
-    @Since(1.0)
-    @Expose
-    @Reference
-    private Set <User>;
+    An embedded document simply saves the embeds the document in an array
+    
+    **/
+    @DocumentField
+    @Embedded(linkedCollection = User.class)
+    private Set<User> phonesEmbed = new HashSet<>();
+
+    /**
+    
+    A Referenced document stores the _id within mongo, And via the Query class maintains an object graph based on the list
+    
+    **/
+    @DocumentField
+    @Reference(linkedCollection = User.class)
+    private Set<User> phonesReference = new HashSet<>();
     
 }
 ```
 
-###Mongo and vertx
+### Mongo and vertx
 
 Currently you can use Mongi with Vert.x 3.0 and the offical Vert.x mongo client
 Simply pass in a Vert.x instance along with the mongo config that you wish to use. Please note that with mongo once you have created a Mongo instance via its officall driver all new instances will use the same configuration unless you specify a new group within the config array.
@@ -91,7 +106,7 @@ mongi.buildOrmSolution("your.entity.package.path");
 ```
 And your done. If you passed in a valid vert.x instance and config then Mongi will automatically create all of your collections and the indexes for those collections as per your syntax sugar.
 
-### Mongo and Vert.rx  AKA Observables
+### Mongo and Vert.rx  AKA Observable
 
 Im currently moving over all of the Identity service to Observables as opposed to the standard call back approach, As such Mongi is in development with this. Bu the principle will be much the same.%  
 
