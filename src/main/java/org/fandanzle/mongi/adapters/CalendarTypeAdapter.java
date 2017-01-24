@@ -12,7 +12,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-public class ObjectIdTypeAdapter extends TypeAdapter<Calendar> implements JsonSerializer<Calendar>, JsonDeserializer<Calendar> {
+public class CalendarTypeAdapter extends TypeAdapter<Calendar> implements JsonSerializer<Calendar>, JsonDeserializer<Calendar> {
 
     private static final Gson gson = new GsonBuilder().create();
     private static final TypeAdapter<Date> dateTypeAdapter = gson.getAdapter(Date.class);

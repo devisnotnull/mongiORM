@@ -5,6 +5,7 @@ import com.google.gson.annotations.Since;
 import org.fandanzle.mongi.annotation.*;
 
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * Java pojo class for clients
@@ -15,10 +16,8 @@ import java.util.Date;
 )
 public class Company {
 
-    // You need to declare a class varible as an @DocumentFiel
     @Id(indexName = "_id")
-    @DocumentField(required = true)
-    private String _id;
+    private UUID _id = UUID.randomUUID();
 
     @DocumentField(required = true)
     @UniqueIndex(indexName = "name_unique_index")
@@ -31,6 +30,15 @@ public class Company {
     @DocumentField(required = true)
     @UniqueIndex(indexName = "height_unique_index")
     private String height;
+
+    public UUID get_id() {
+        return _id;
+    }
+
+    public Company set_id(UUID _id) {
+        this._id = _id;
+        return this;
+    }
 
     public String getName() {
         return name;

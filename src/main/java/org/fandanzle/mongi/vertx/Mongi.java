@@ -58,11 +58,15 @@ public class Mongi implements IMongi {
     //
     private Database mongiDb = new Database();
 
+    public Vertx vertx = null;
+
     /**
      *
      * @param vertx
      */
     public Mongi(Vertx vertx) {
+
+        this.vertx = vertx;
 
         /*
          * We need a list of classes, These will need to be linked to TypeAdapters
@@ -78,6 +82,7 @@ public class Mongi implements IMongi {
         };
 
         mongoClient = MongoClient.createShared(vertx, new JsonObject());
+
     }
 
     /**
@@ -109,7 +114,7 @@ public class Mongi implements IMongi {
      *
      * @param adapter
      */
-    public void registerTypeAdapter(Class class, TypeAdapter adapter){
+    public void registerTypeAdapter(Class clazz, TypeAdapter adapter){
 
     }
 
@@ -266,7 +271,6 @@ public class Mongi implements IMongi {
                         if(reference != null){
 
                             logger.info("Referenced field to process");
-                            collectIndex.put(field.getName() , unique.indexName());
 
                         }
 

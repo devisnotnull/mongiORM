@@ -10,20 +10,18 @@ import java.util.List;
  * Pass in type of return,
  * Used to handle call backs and promises
  */
-public interface IQuery<T> {
+public interface IQuery {
 
+    <T> IQuery findOne(T clazz, Object id, Handler<AsyncResult<T>> handler);
+    <T> IQuery insert(Class<T> clazz, Object object, Handler<AsyncResult<String>> handler);
 
-    IQuery findOne(Class clazz, Object id, T hadler);
-
-    IQuery query(Class clazz, JsonObject object, T hadler);
-
-    IQuery insert(Class clazz, Object object, T asyncResultHandler);
-    IQuery insertBulk(Class clazz, List<?> T, T asyncResultHandler);
-
-    IQuery update(Class clazz, Object id, Object object, T asyncResultHandler);
-
-    IQuery delete(Class clazz, Object object, T asyncResultHandler);
-    IQuery deleteBulk(Class clazz, Object object, T asyncResultHandler);
-
+    /**
+    <T> IQuery query(Class clazz, JsonObject object, R hadler);
+    <T> IQuery insert(Class clazz, Object object, R asyncResultHandler);
+    <T> IQuery insertBulk(Class clazz, List<?> T, R asyncResultHandler);
+    <T> IQuery update(Class clazz, Object id, Object object, R asyncResultHandler);
+    <T> IQuery delete(Class clazz, Object object, R asyncResultHandler);
+    <T> IQuery deleteBulk(Class clazz, Object object, R asyncResultHandler);
+     **/
 
 }

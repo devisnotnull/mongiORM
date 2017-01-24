@@ -2,6 +2,7 @@ package org.fandanzle.mongi.entity;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.Since;
+import org.bson.types.ObjectId;
 import org.fandanzle.mongi.annotation.*;
 
 import java.util.*;
@@ -18,35 +19,61 @@ import java.util.*;
 public class Person {
 
     @Id(indexName = "_id")
-    @Expose(serialize = false, deserialize = true)
-    private String _id;
+    private UUID _id = UUID.randomUUID();
 
-    @Expose
-    @DocumentField
+    @DocumentField(
+            expose = true
+    )
     @UniqueIndex(indexName = "name_unique_index")
     private String name;
 
-    @Expose
-    @DocumentField
-    @UniqueIndex(indexName = "dob_unique_index")
+    @DocumentField(
+            expose = true
+    )
     private Date dob;
 
-    @Expose
-    @DocumentField
-    @UniqueIndex(indexName = "height_unique_index")
+    @DocumentField(
+            expose = true
+    )
     private String height;
 
-    @DocumentField
-    @Reference
-    @LinkedCollection(linkedCollection = Cars.class)
-    private Set<Cars> cars = new HashSet<>();
+    @DocumentField(
+            expose = true
+    )
+    @Embedded(linkedCollection = Cars.class)
+    private Set<Cars> carsEmbed = new HashSet<>();
 
-    public Set<Cars> getCars() {
-        return cars;
+    @DocumentField(
+            expose = true
+    )
+    @Reference(linkedCollection = Cars.class)
+    private Set<Cars> carsReference = new HashSet<>();
+
+    public UUID get_id() {
+        return _id;
     }
 
-    public void setCars(Set<Cars> cars) {
-        this.cars = cars;
+    public Person set_id(UUID _id) {
+        this._id = _id;
+        return this;
+    }
+
+    public Set<Cars> getCarsEmbed() {
+        return carsEmbed;
+    }
+
+    public Person setCarsEmbed(Set<Cars> carsEmbed) {
+        this.carsEmbed = carsEmbed;
+        return this;
+    }
+
+    public Set<Cars> getCarsReference() {
+        return carsReference;
+    }
+
+    public Person setCarsReference(Set<Cars> carsReference) {
+        this.carsReference = carsReference;
+        return this;
     }
 
     public String getName() {

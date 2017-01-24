@@ -4,6 +4,8 @@ package org.fandanzle.mongi.entity;
 import com.google.gson.annotations.Expose;
 import org.fandanzle.mongi.annotation.*;
 
+import java.util.UUID;
+
 /**
  * Java pojo class for clients
  * Created by alexb on 18/11/2015.
@@ -13,11 +15,8 @@ import org.fandanzle.mongi.annotation.*;
 )
 public class Cars {
 
-
-    @Expose(
-            serialize = false, deserialize = true
-    )
-    private String _id;
+    @Id(indexName = "_id")
+    private UUID _id = UUID.randomUUID();
 
     @Expose
     @DocumentField
@@ -36,6 +35,9 @@ public class Cars {
     @DocumentField
     private String color;
 
+    public UUID get_id() {
+        return _id;
+    }
 
     public String getNumberplate() {
         return numberplate;

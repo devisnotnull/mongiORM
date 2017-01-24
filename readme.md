@@ -64,6 +64,16 @@ public class ExampleEntity {
     @UniqueIndex(indexName = "entity_name_unique_index")
     private String entityName;
     
+    @Since(1.0)
+    @Expose
+    @Embed
+    private Set <User>;
+    
+    @Since(1.0)
+    @Expose
+    @Reference
+    private Set <User>;
+    
 }
 ```
 
