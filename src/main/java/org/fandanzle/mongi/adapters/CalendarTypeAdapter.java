@@ -1,22 +1,21 @@
 package org.fandanzle.mongi.adapters;
 
-import java.util.Calendar;
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import org.bson.types.ObjectId;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-public class CalendarTypeAdapter extends TypeAdapter<ObjectId> implements JsonSerializer<ObjectId>, JsonDeserializer<ObjectId> {
+public class ObjectIdTypeAdapter extends TypeAdapter<Calendar> implements JsonSerializer<Calendar>, JsonDeserializer<Calendar> {
 
     private static final Gson gson = new GsonBuilder().create();
-    private static final TypeAdapter<ObjectId> dateTypeAdapter = gson.getAdapter(ObjectId.class);
+    private static final TypeAdapter<Date> dateTypeAdapter = gson.getAdapter(Date.class);
     private static final String MONGO_UTC_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
     /**
@@ -25,7 +24,7 @@ public class CalendarTypeAdapter extends TypeAdapter<ObjectId> implements JsonSe
      * @param context
      * @return
      */
-    public JsonElement serialize(ObjectId src, Type type,
+    public JsonElement serialize(Calendar src, Type type,
                                  JsonSerializationContext context) {
         if (src == null) {
             return null;
@@ -45,7 +44,7 @@ public class CalendarTypeAdapter extends TypeAdapter<ObjectId> implements JsonSe
      * @throws JsonParseException
      */
     @Override
-    public ObjectId deserialize(ObjectId json, Type type,
+    public Calendar deserialize(JsonElement json, Type type,
                                 JsonDeserializationContext context) throws JsonParseException {
         Date date = null;
         SimpleDateFormat format = new SimpleDateFormat(MONGO_UTC_FORMAT);
@@ -65,8 +64,8 @@ public class CalendarTypeAdapter extends TypeAdapter<ObjectId> implements JsonSe
      * @throws IOException
      */
     @Override
-    public void write(JsonWriter out, ObjectId value) throws IOException {
-        dateTypeAdapter.write(out, value.toString());
+    public void write(JsonWriter out, Calendar value) throws IOException {
+        dateTypeAdapter.write(out, value.getTime());
     }
 
     /**
@@ -75,9 +74,11 @@ public class CalendarTypeAdapter extends TypeAdapter<ObjectId> implements JsonSe
      * @throws IOException
      */
     @Override
-    public ObjectId read(JsonReader in) throws IOException {
-        ObjectId read = dateTypeAdapter.read(in);
-        return read;
+    public Calendar read(JsonReader in) throws IOException {
+        Date read = dateTypeAdapter.read(in);
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        gregorianCalendar.setTime(read);
+        return gregorianCalendar;
     }
 
 }
