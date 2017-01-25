@@ -12,10 +12,8 @@ import org.apache.log4j.Logger;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -176,6 +174,30 @@ public class JsonTransform {
             Type listType = new TypeToken<List<T>>() {}.getType();
             String decode = builder.toJson(json, listType);
             resultHandler.handle(Future.succeededFuture( new JsonObject(decode) ) );
+
+        }catch (Exception e){
+            e.printStackTrace();
+            resultHandler.handle(Future.failedFuture(e.getCause()));
+        }
+    }
+
+    /**
+     * Take a list and transform into a JsonObject
+     * @param json
+     * @param resultHandler
+     */
+    public static <T> void JsonObjectListToObjectList(Class<T> type, List<JsonObject> json, Handler<AsyncResult<List<T>>> resultHandler){
+
+        List<T> finalList = new ArrayList<T>();
+
+        try {
+            Type listType = new TypeToken<T>() {}.getType();
+
+            json.forEach( each -> {
+                finalList.add( builder.fromJson(each.encode(), listType) );
+            });
+
+            resultHandler.handle(Future.succeededFuture( finalList ) );
 
         }catch (Exception e){
             e.printStackTrace();

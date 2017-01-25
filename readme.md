@@ -23,6 +23,7 @@ Build for vert.x 3, Using both standard asyncronous callbacks and observables(AK
 - Properly implement observables and RX-Java
 - Implement proper Iquery interface
 - Move away from GSON to jackson, Vertx uses Jackson. But i know GSON better.
+- Combine all index types into one annotation
 
 
 ```xml

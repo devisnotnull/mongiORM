@@ -153,6 +153,45 @@ public class Query implements IQuery {
 
     }
 
+    /**
+     * Find a collection by is ID param
+     * @param clazz
+     * @param id
+     * @param handler
+     * @return
+     */
+    public <FT> Query findMany( Class<FT> clazz, List<String> id, Handler<AsyncResult<FT>> handler){
+
+        Collection collection = getClazzCollection( (Class) clazz);
+
+        if(collection==null){
+            handler.handle(Future.failedFuture("Collection does not exist"));
+            return this;
+        }
+
+        JsonObject jsonObject = new JsonObject();
+
+        id.forEach( each -> {
+            jsonObject.put("_id", each);
+        });
+
+        mongoClient.find(collection.getCollectionName(), jsonObject, ex -> {
+            if(ex.succeeded()){
+                JsonTransform.JsonObjectListToObjectList(clazz, ex.result(), transformHandler -> {
+                    if(transformHandler.succeeded()){
+                        transformHandler.result();
+                    }
+                    else handler.handle(Future.failedFuture(transformHandler.cause()));
+                });
+            }else {
+                handler.handle(Future.failedFuture(ex.cause()));
+            }
+        });
+
+        return this;
+
+    }
+
 
     /**
      *
