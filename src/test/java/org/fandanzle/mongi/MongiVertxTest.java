@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.sound.midi.SysexMessage;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -500,7 +501,12 @@ public class MongiVertxTest {
                 });
          **/
 
-        query.insert1(Scope.class, scope);
+        // Chainable callbacks
+        query.insert1(Scope.class, scope).thenAccept(e -> {
+            async.complete();
+            assertTrue(true);
+            System.out.println("********************** GREAT SUCCESS **********************");
+        });
 
     }
 

@@ -215,7 +215,7 @@ public class Query implements IQuery {
     }
 
     /**
-     * Bulk insert
+     * Bulk insert, Using generic commands
      * @param ftClass
      * @param
      * @param handler
@@ -338,13 +338,15 @@ public class Query implements IQuery {
     }
 
 
-    /**
-     *1
-     * @param ftClass
-     * @param object
-     * @param
-     * @return
-     */
+
+
+        /**
+         *1
+         * @param ftClass
+         * @param object
+         * @param
+         * @return
+         */
     public <FT> CompletableFuture<Void> insert1(Class<FT> ftClass, Object object) {
 
         List<JsonObject> aa = new ArrayList<>();
