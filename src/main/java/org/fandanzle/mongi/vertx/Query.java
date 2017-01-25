@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 import org.fandanzle.mongi.gson.JsonTransform;
 
 import javax.management.AttributeList;
+import javax.print.attribute.standard.JobSheets;
 import javax.xml.ws.AsyncHandler;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -265,10 +266,51 @@ public class Query implements IQuery {
      *
      * @param ftClass
      * @param object
-     * @param handler
+     * @param
      * @return
      */
-    private <FT> CompletableFuture<Void> insert(Class<FT> ftClass, Object object) {
+    public <FT> CompletableFuture<String> insert(Class<FT> ftClass, Object object) {
+
+        CompletableFuture<String> promise = new CompletableFuture<>();
+
+        Collection collection = getClazzCollection(ftClass);
+
+        if(collection==null){
+            promise.completeExceptionally(new Throwable("No such collection"));
+        }else {
+
+            mongoClient.save(collection.getCollectionName(), new JsonObject( Json.encodePrettily(object)), (AsyncResult<String> e)-> {
+
+                if (e.succeeded()) {
+                    System.out.println("SAVED !!!!!!!!!!!!!!!!");
+                    System.out.println(e.result());
+                    promise.complete(e.result());
+                } else {
+                    System.out.println("FAILED !!!!!!!!!!!!!!!!");
+                    promise.completeExceptionally(e.cause());
+                }
+
+            });
+        }
+
+        return promise;
+    }
+
+
+    /**
+     *
+     * @param ftClass
+     * @param object
+     * @param
+     * @return
+     */
+    public <FT> CompletableFuture<Void> in(Class<FT> ftClass, Object object) {
+
+        List<JsonObject> aa = new ArrayList<>();
+        aa.add(new JsonObject().put("aaa", "aaa"));
+        aa.add(new JsonObject().put("bbb", "bbb"));
+        aa.add(new JsonObject().put("ccc", "ccc"));
+        aa.add(new JsonObject().put("ddd", "ddd"));
 
         CompletableFuture<Void> promise = new CompletableFuture<>();
 
@@ -278,7 +320,7 @@ public class Query implements IQuery {
             promise.completeExceptionally(new Throwable("No such collection"));
         }else {
 
-            mongoClient.save(collection.getCollectionName(), saveJson, e -> {
+            mongoClient.save(collection.getCollectionName(), new JsonObject( Json.encodePrettily(object)), (AsyncResult<String> e)-> {
 
                 if (e.succeeded()) {
                     System.out.println("SAVED !!!!!!!!!!!!!!!!");
@@ -290,6 +332,41 @@ public class Query implements IQuery {
                 }
 
             });
+        }
+
+        return promise;
+    }
+
+
+    /**
+     *1
+     * @param ftClass
+     * @param object
+     * @param
+     * @return
+     */
+    public <FT> CompletableFuture<Void> insert1(Class<FT> ftClass, Object object) {
+
+        List<JsonObject> aa = new ArrayList<>();
+        aa.add(new JsonObject().put("_id", UUID.randomUUID().toString() ));
+        aa.add(new JsonObject().put("_id", UUID.randomUUID().toString() ));
+        aa.add(new JsonObject().put("_id", UUID.randomUUID().toString() ));
+        aa.add(new JsonObject().put("_id", UUID.randomUUID().toString() ));
+
+        CompletableFuture<Void> promise = new CompletableFuture<>();
+
+
+        Collection collection = getClazzCollection(ftClass);
+
+        if(collection==null){
+            promise.completeExceptionally(new Throwable("No such collection"));
+        }else {
+
+            for(JsonObject ii : aa){
+                promise.thenCompose( c -> in(ftClass, ii));
+            }
+
+            promise.complete(null);
         }
 
         return promise;
