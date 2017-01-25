@@ -3,8 +3,10 @@ package org.fandanzle.mongi.vertx;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
+import io.vertx.core.Context;
 import io.vertx.core.json.JsonArray;
 import org.apache.log4j.net.SyslogAppender;
+import org.bson.Document;
 import org.fandanzle.mongi.IMongi;
 import org.fandanzle.mongi.IQuery;
 import org.fandanzle.mongi.annotation.Embedded;
@@ -21,13 +23,13 @@ import io.vertx.ext.mongo.MongoClient;
 import org.apache.log4j.Logger;
 import org.fandanzle.mongi.gson.JsonTransform;
 
+import javax.management.AttributeList;
 import javax.xml.ws.AsyncHandler;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.nio.file.FileSystemNotFoundException;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  *
@@ -40,6 +42,7 @@ public class Query implements IQuery {
 
     private MongoClient mongoClient = null;
     private Database mongiDb = null;
+    private Mongi mongi = null;
 
     private Gson jsonParser = new GsonBuilder()
             .setPrettyPrinting()
@@ -48,6 +51,7 @@ public class Query implements IQuery {
             .create();
 
     public Query(Mongi mongi){
+        this.mongi = mongi;
         mongiDb = mongi.getMongoDatabase();
         mongoClient = mongi.getMongoClient();
     }
@@ -97,16 +101,6 @@ public class Query implements IQuery {
 
                         JsonArray proc = result.getJsonArray(field.getName());
 
-                        System.out.println("Full result - " + result.encodePrettily());
-                        System.out.println("Field name " + field.getName() );
-                        System.out.println("Result of find - " + result.encodePrettily());
-                        System.out.println("Cross reference  - " + proc.encodePrettily());
-
-                        System.out.println( "Original = " + proc.encodePrettily() );
-                        System.out.println( "List = " + Json.encodePrettily( proc.getList() ) );
-                        System.out.println( "List1 = " + Json.encodePrettily( proc.getList() ) );
-                        System.out.println( "List2 = " + Json.encodePrettily( proc.getList() ) );
-
                         JsonArray newArr = new JsonArray();
 
                         for(Object ite : proc.getList() ){
@@ -153,6 +147,7 @@ public class Query implements IQuery {
 
     }
 
+
     /**
      * Find a collection by is ID param
      * @param clazz
@@ -160,7 +155,7 @@ public class Query implements IQuery {
      * @param handler
      * @return
      */
-    public <FT> Query findMany( Class<FT> clazz, List<String> id, Handler<AsyncResult<FT>> handler){
+    public <FT> Query findMany( Class<FT> clazz, List<String> id, Handler<AsyncResult<List<FT>>> handler){
 
         Collection collection = getClazzCollection( (Class) clazz);
 
@@ -179,7 +174,7 @@ public class Query implements IQuery {
             if(ex.succeeded()){
                 JsonTransform.JsonObjectListToObjectList(clazz, ex.result(), transformHandler -> {
                     if(transformHandler.succeeded()){
-                        transformHandler.result();
+                        handler.handle(Future.succeededFuture(transformHandler.result()));
                     }
                     else handler.handle(Future.failedFuture(transformHandler.cause()));
                 });
@@ -202,6 +197,7 @@ public class Query implements IQuery {
      */
     public <FT> Query query( Class<FT> clazz, Handler<AsyncResult<JsonObject>> handler){
 
+
         return this;
     }
 
@@ -215,6 +211,88 @@ public class Query implements IQuery {
     public <FT> Query query( Class<FT> ftClass, JsonObject id, Handler<AsyncResult<JsonObject>> handler){
 
         return this;
+    }
+
+    /**
+     * Bulk insert
+     * @param ftClass
+     * @param
+     * @param handler
+     * @param <FT>
+     * @return
+     */
+    public <FT> Query bulkInsert(Class<FT> ftClass, Set<FT> list, Handler<AsyncResult<JsonObject>> handler) {
+
+        Collection collection = getClazzCollection(ftClass);
+
+        if(collection==null){
+            System.out.println("NO SUCH COLLECTION");
+            handler.handle(Future.failedFuture("Collection does not exist"));
+            return this;
+        }
+
+        List<Document> doc = new ArrayList<>();
+
+        for(FT item : list){
+            String dd = Json.encode(item);
+            doc.add(Document.parse(dd));
+        }
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("insert", collection.getCollectionName())
+                .put("documents",doc);
+
+        mongoClient.runCommand("insert", jsonObject, handlerCom -> {
+            if (handlerCom.succeeded()) {
+                System.out.println("SAVED !!!!!!!!!!!!!!!!");
+                System.out.println(handlerCom.result());
+                handler.handle(
+                        Future.succeededFuture(handlerCom.result())
+                );
+            }
+            else {
+                System.out.println("FAILED !!!!!!!!!!!!!!!!");
+                handler.handle(Future.failedFuture(handlerCom.cause()));
+            }
+        });
+
+        return this;
+
+    }
+
+
+    /**
+     *
+     * @param ftClass
+     * @param object
+     * @param handler
+     * @return
+     */
+    private <FT> CompletableFuture<Void> insert(Class<FT> ftClass, Object object) {
+
+        CompletableFuture<Void> promise = new CompletableFuture<>();
+
+        Collection collection = getClazzCollection(ftClass);
+
+        if(collection==null){
+            promise.completeExceptionally(new Throwable("No such collection"));
+        }else {
+
+            mongoClient.save(collection.getCollectionName(), saveJson, e -> {
+
+                if (e.succeeded()) {
+                    System.out.println("SAVED !!!!!!!!!!!!!!!!");
+                    System.out.println(e.result());
+                    promise.complete(null);
+                } else {
+                    System.out.println("FAILED !!!!!!!!!!!!!!!!");
+                    promise.completeExceptionally(e.cause());
+                }
+
+            });
+        }
+
+        return promise;
     }
 
     /**
@@ -246,10 +324,13 @@ public class Query implements IQuery {
                 Json.encode(object)
         );
 
+
+        HashMap<Class, List<JsonObject>> required = new HashMap<>();
+
         for (Field field : objectMatch.getClass().getDeclaredFields()) {
 
             Embedded embedded = field.getAnnotation(Embedded.class);
-            if( embedded !=null ){
+            if( embedded != null ){
 
                 System.out.println("EMBED FIELD NAME " + field.getName() );
             }
@@ -264,9 +345,13 @@ public class Query implements IQuery {
 
                     Iterator itr = array.iterator();
 
+                    required.put(reference.linkedCollection(),new ArrayList<>());
+
                     while (itr.hasNext()) {
                         JsonObject element = (JsonObject) itr.next();
                         strArr.add(element.getString("_id"));
+                        // We need to build a list of items to insert for this document
+                        required.get(reference.linkedCollection()).add(element);
                     }
 
                     saveJson.put(field.getName(), strArr);
@@ -282,7 +367,6 @@ public class Query implements IQuery {
 
         }
 
-        logger.info("INSERT TIME !!");
         mongoClient.save(collection.getCollectionName(), saveJson, e -> {
 
             if (e.succeeded()) {

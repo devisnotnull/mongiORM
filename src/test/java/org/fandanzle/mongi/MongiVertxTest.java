@@ -50,7 +50,7 @@ public class MongiVertxTest {
      *
      * @param context
      */
-    @Test
+    //@Test
     public void testMongoIndexCreation(TestContext context){
 
         vertx = Vertx.vertx();
@@ -175,7 +175,7 @@ public class MongiVertxTest {
      *
      * @param context
      */
-    @Test
+    //@Test
     public void testScopesAndGroups(TestContext context){
 
         vertx = Vertx.vertx();
@@ -271,6 +271,182 @@ public class MongiVertxTest {
 
          });
          **/
+
+    }
+
+
+
+
+    /**
+     *
+     * @param context
+     */
+    @Test
+    public void testInserMany(TestContext context){
+
+        vertx = Vertx.vertx();
+
+        final Async async = context.async();
+
+        JsonObject config = new JsonObject().put("db_name", "test_vertx");
+
+        Mongi mongiVertx = new Mongi(vertx , config);
+
+        System.out.println("--------------------------------------------------------");
+        System.out.println("STANDARD TEST");
+        System.out.println("--------------------------------------------------------");
+
+        // Build our ORM profile
+        mongiVertx.buildOrmSolution("org.fandanzle.mongi.entity").setRebuild(true);
+        // Fetch the current database context, Mongi will create all of your collections
+        // within one database
+        Database database = mongiVertx.getMongoDatabase();
+
+        int gimme = 200;
+
+        Group group = new Group();
+        group.setName("Group " + UUID.randomUUID());
+        group.setDescription("Description - " + UUID.randomUUID());
+
+        int i = 1000;
+        while (i > 0) {
+            Scope scope = new Scope();
+            scope.setName("Scope " + UUID.randomUUID().toString());
+            group.getScopes().add(scope);
+            i--;
+        }
+
+        Query query = new Query(mongiVertx);
+
+        System.out.println("INSERTING BULK  !!!!!!!!!");
+
+        query.bulkInsert(Scope.class, group.getScopes() , e-> {
+
+            if(e.succeeded()){
+                System.out.println( Json.encodePrettily(  e.result() ) );
+                async.complete();
+                assertTrue(true);
+
+
+            }
+            else{
+                System.out.println("=========================");
+                System.out.println("ERROR WERE NOT LINKED");
+                e.cause().printStackTrace();
+                System.out.println("=========================");
+                System.out.println(e.cause().getClass());
+                System.out.println(e.cause().getMessage());
+                System.out.println("=========================");
+
+                //async.complete();
+                //assertFalse(true);
+            }
+
+        });
+
+
+        /**
+         query.findOne(Person.class, person.get_id().toString(), find ->{
+
+         if (find.succeeded()){
+
+         System.out.println("=========================");
+         System.out.println("PERSON object was sucessfully saved and found again ! HORRAR !!");
+         Person pp = find.result();
+         System.out.print( Json.encodePrettily( find.result() ) );
+
+         async.complete();
+         assertTrue(true);
+         }
+         else if (find.failed()){
+         async.complete();
+         assertTrue(false);
+         }
+         else{
+         async.complete();
+         assertTrue(false);
+         }
+
+         });
+         **/
+
+    }
+
+
+
+
+
+    /**
+     *
+     * @param context
+     */
+    @Test
+    public void testComposites(TestContext context){
+
+        vertx = Vertx.vertx();
+
+        final Async async = context.async();
+
+        JsonObject config = new JsonObject().put("db_name", "test_vertx");
+
+        Mongi mongiVertx = new Mongi(vertx , config);
+
+        System.out.println("--------------------------------------------------------");
+        System.out.println("STANDARD TEST");
+        System.out.println("--------------------------------------------------------");
+
+        // Build our ORM profile
+        mongiVertx.buildOrmSolution("org.fandanzle.mongi.entity").setRebuild(true);
+        // Fetch the current database context, Mongi will create all of your collections
+        // within one database
+        Database database = mongiVertx.getMongoDatabase();
+
+        int gimme = 200;
+
+        Group group = new Group();
+        group.setName("Group " + UUID.randomUUID());
+        group.setDescription("Description - " + UUID.randomUUID());
+
+        Scope scope = new Scope();
+        scope.setName("Scope " + UUID.randomUUID().toString());
+
+        Scope scope1 = new Scope();
+        scope1.setName("Scope " + UUID.randomUUID().toString());
+
+        Scope scope3 = new Scope();
+        scope3.setName("Scope " + UUID.randomUUID().toString());
+
+        Scope scope4 = new Scope();
+        scope4.setName("Scope " + UUID.randomUUID().toString());
+
+        scope.getComposites().add(scope1);
+        scope.getComposites().add(scope3);
+        scope.getComposites().add(scope4);
+
+        Query query = new Query(mongiVertx);
+
+        System.out.println("INSERTING BULK  !!!!!!!!!");
+
+        query.insert(Scope.class, scope , e-> {
+
+            if(e.succeeded()){
+                System.out.println( Json.encodePrettily(  e.result() ) );
+                async.complete();
+                assertTrue(true);
+            }
+            else{
+                System.out.println("=========================");
+                System.out.println("ERROR WERE NOT LINKED");
+                e.cause().printStackTrace();
+                System.out.println("=========================");
+                System.out.println(e.cause().getClass());
+                System.out.println(e.cause().getMessage());
+                System.out.println("=========================");
+
+            }
+
+        });
+
 
     }
 
